@@ -5219,6 +5219,12 @@ impl World {
         if chunks_set.is_empty() {
             return;
         }
+        // Before anything below can yield: once nothing holds a ticket for a chunk the
+        // scheduler may unload it, and a chunk that is gone drops this write.
+        for chunk_pos in &chunks_set {
+            self.save_block_entities(*chunk_pos);
+            self.block_entities.remove(chunk_pos);
+        }
         let mut entities_to_remove = Vec::new();
 
         self.entities.rcu(|current_entities| {
@@ -5254,11 +5260,6 @@ impl World {
             if let Some(mob) = entity.get_mob() {
                 mob.get_mob_entity().finish_removal(mob);
             }
-        }
-
-        for chunk_pos in &chunks_set {
-            self.save_block_entities(*chunk_pos);
-            self.block_entities.remove(chunk_pos);
         }
     }
 

@@ -82,6 +82,12 @@ pub fn update_position(player: &Arc<Player>) {
     let loading_chunks: Vec<_> = loading_iter.collect();
     let unloading_chunks: Vec<_> = unloading_iter.collect();
 
+    // A long jump (teleport, portal) can drop these chunks from every ticket at once, so
+    // their block entities are saved before the old ticket goes, not in the task below.
+    for pos in &unloading_chunks {
+        world.save_block_entities(*pos);
+    }
+
     let level = &world.level;
     let mut held_tickets = player
         .held_chunk_tickets
