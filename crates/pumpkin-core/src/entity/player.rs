@@ -538,6 +538,8 @@ pub struct Player {
     pub per_player_time: AtomicCell<Option<(u64, bool)>>,
     pub per_player_weather: AtomicCell<Option<PlayerWeather>>,
     pub custom_scoreboard: std::sync::Mutex<Option<CustomScoreboard>>,
+    /// Whether the join sent the full scoreboard. Only changed under `custom_scoreboard`.
+    pub(crate) scoreboard_sent: AtomicBool,
     pub compass_target: AtomicCell<Option<pumpkin_util::math::position::BlockPos>>,
     pub respawn_location: AtomicCell<Option<pumpkin_util::math::position::BlockPos>>,
     pub hidden_players: Mutex<std::collections::HashSet<uuid::Uuid>>,
@@ -744,6 +746,8 @@ impl Player {
             ClientPlatform::Java(client) => client.version.load() >= JavaMinecraftVersion::V_1_21_4,
             ClientPlatform::Bedrock(_) => true,
         };
+        // Bedrock gets no full scoreboard on join, so its scoreboard changes go out at once.
+        let is_bedrock = matches!(client.as_ref(), ClientPlatform::Bedrock(_));
         let initially_loaded = !supports_player_loaded;
 
         Self {
@@ -853,6 +857,7 @@ impl Player {
             per_player_time: AtomicCell::new(None),
             per_player_weather: AtomicCell::new(None),
             custom_scoreboard: std::sync::Mutex::new(None),
+            scoreboard_sent: AtomicBool::new(is_bedrock),
             compass_target: AtomicCell::new(None),
             respawn_location: AtomicCell::new(None),
             hidden_players: Mutex::new(std::collections::HashSet::new()),
@@ -3944,6 +3949,24 @@ impl Player {
             .custom_scoreboard
             .lock()
             .unwrap_or_else(std::sync::PoisonError::into_inner);
+        // Before the join, changes are only stored: they go out with the full state.
+        if self.scoreboard_sent.load(Ordering::Relaxed) {
+            self.send_scoreboard_state(guard);
+        }
+    }
+
+    /// Sends the full scoreboard on join. From then on, changes are sent as they happen.
+    pub fn send_initial_scoreboard(&self) {
+        let guard = self
+            .custom_scoreboard
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        // Under the lock, so a concurrent change is either in the full state or sent after it.
+        self.scoreboard_sent.store(true, Ordering::Relaxed);
+        self.send_scoreboard_state(guard);
+    }
+
+    fn send_scoreboard_state(&self, guard: std::sync::MutexGuard<'_, Option<CustomScoreboard>>) {
         match guard.as_ref() {
             Some(CustomScoreboard::Java(custom))
                 if matches!(self.client.as_ref(), ClientPlatform::Java(_)) =>

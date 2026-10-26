@@ -1,3 +1,5 @@
+use std::sync::atomic::Ordering;
+
 use rustc_hash::FxHashMap;
 
 use pumpkin_data::scoreboard::ScoreboardDisplaySlot;
@@ -71,17 +73,23 @@ impl ScoreboardTarget for std::sync::Arc<World> {
     }
 }
 
+// A player's own scoreboard. Until the join sent the full state, a change is only stored:
+// sending it now would add the same objective twice, and the client disconnects on that.
 impl ScoreboardTarget for Player {
     fn send_editioned<J: ClientPacket + Sync, B: BClientPacket + Sync>(
         &self,
         je_packet: &J,
         be_packet: &B,
     ) {
-        self.try_enqueue_packet_editioned(je_packet, be_packet);
+        if self.scoreboard_sent.load(Ordering::Relaxed) {
+            self.try_enqueue_packet_editioned(je_packet, be_packet);
+        }
     }
 
     fn send_je<J: ClientPacket + Sync>(&self, je_packet: &J) {
-        self.try_send_client_packet(je_packet);
+        if self.scoreboard_sent.load(Ordering::Relaxed) {
+            self.try_send_client_packet(je_packet);
+        }
     }
 }
 
@@ -91,11 +99,11 @@ impl ScoreboardTarget for std::sync::Arc<Player> {
         je_packet: &J,
         be_packet: &B,
     ) {
-        self.try_enqueue_packet_editioned(je_packet, be_packet);
+        <Player as ScoreboardTarget>::send_editioned(self, je_packet, be_packet);
     }
 
     fn send_je<J: ClientPacket + Sync>(&self, je_packet: &J) {
-        self.try_send_client_packet(je_packet);
+        <Player as ScoreboardTarget>::send_je(self, je_packet);
     }
 }
 
