@@ -48,7 +48,7 @@ pub fn serialize_java_packet(
         }
         ClientboundPacket::ConfigCConfigPing(data) => {
             let p = pumpkin_protocol::java::client::config::CConfigPing {
-                id: data.id.try_into().unwrap(),
+                id: data.id.try_into().ok()?,
             };
             let mut buf = Vec::new();
             pumpkin_core::net::java::JavaClient::write_packet_for_version(&p, version, &mut buf)
@@ -142,7 +142,7 @@ pub fn serialize_java_packet(
                     data.location.1,
                     data.location.2,
                 ),
-                destroy_stage: data.destroy_stage.try_into().unwrap(),
+                destroy_stage: data.destroy_stage.cast_signed(),
             };
             let mut buf = Vec::new();
             pumpkin_core::net::java::JavaClient::write_packet_for_version(&p, version, &mut buf)
@@ -171,8 +171,8 @@ pub fn serialize_java_packet(
                     data.location.1,
                     data.location.2,
                 ),
-                action_id: data.action_id.try_into().unwrap(),
-                action_parameter: data.action_parameter.try_into().unwrap(),
+                action_id: data.action_id.try_into().ok()?,
+                action_parameter: data.action_parameter.try_into().ok()?,
                 block_type: VarInt(data.block_type),
             };
             let mut buf = Vec::new();
@@ -206,8 +206,8 @@ pub fn serialize_java_packet(
         }
         ClientboundPacket::CChangeDifficulty(data) => {
             let p = pumpkin_protocol::java::client::play::CChangeDifficulty {
-                difficulty: data.difficulty.try_into().unwrap(),
-                locked: data.locked.try_into().unwrap(),
+                difficulty: data.difficulty.try_into().ok()?,
+                locked: data.locked.try_into().ok()?,
             };
             let mut buf = Vec::new();
             pumpkin_core::net::java::JavaClient::write_packet_for_version(&p, version, &mut buf)
@@ -225,7 +225,7 @@ pub fn serialize_java_packet(
         }
         ClientboundPacket::CClearTitle(data) => {
             let p = pumpkin_protocol::java::client::play::CClearTitle {
-                reset: data.reset.try_into().unwrap(),
+                reset: data.reset.try_into().ok()?,
             };
             let mut buf = Vec::new();
             pumpkin_core::net::java::JavaClient::write_packet_for_version(&p, version, &mut buf)
@@ -350,7 +350,7 @@ pub fn serialize_java_packet(
         ClientboundPacket::CEntityAnimation(data) => {
             let p = pumpkin_protocol::java::client::play::CEntityAnimation {
                 entity_id: VarInt(data.entity_id),
-                animation: data.animation.try_into().unwrap(),
+                animation: data.animation.try_into().ok()?,
             };
             let mut buf = Vec::new();
             pumpkin_core::net::java::JavaClient::write_packet_for_version(&p, version, &mut buf)
@@ -369,8 +369,8 @@ pub fn serialize_java_packet(
         }
         ClientboundPacket::CEntityStatus(data) => {
             let p = pumpkin_protocol::java::client::play::CEntityStatus {
-                entity_id: data.entity_id.try_into().unwrap(),
-                entity_status: data.entity_status.try_into().unwrap(),
+                entity_id: data.entity_id.try_into().ok()?,
+                entity_status: data.entity_status.cast_signed(),
             };
             let mut buf = Vec::new();
             pumpkin_core::net::java::JavaClient::write_packet_for_version(&p, version, &mut buf)
@@ -396,8 +396,8 @@ pub fn serialize_java_packet(
         }
         ClientboundPacket::CGameEvent(data) => {
             let p = pumpkin_protocol::java::client::play::CGameEvent {
-                event: data.event.try_into().unwrap(),
-                value: data.value.try_into().unwrap(),
+                event: data.event.try_into().ok()?,
+                value: data.value.try_into().ok()?,
             };
             let mut buf = Vec::new();
             pumpkin_core::net::java::JavaClient::write_packet_for_version(&p, version, &mut buf)
@@ -409,9 +409,9 @@ pub fn serialize_java_packet(
                 pos: pumpkin_util::math::position::BlockPos::new(
                     data.pos.0, data.pos.1, data.pos.2,
                 ),
-                color: data.color.try_into().unwrap(),
+                color: data.color.try_into().ok()?,
                 label: &data.label,
-                duration_ms: data.duration_ms.try_into().unwrap(),
+                duration_ms: data.duration_ms.try_into().ok()?,
             };
             let mut buf = Vec::new();
             pumpkin_core::net::java::JavaClient::write_packet_for_version(&p, version, &mut buf)
@@ -421,7 +421,7 @@ pub fn serialize_java_packet(
         ClientboundPacket::CHeadRot(data) => {
             let p = pumpkin_protocol::java::client::play::CHeadRot {
                 entity_id: VarInt(data.entity_id),
-                head_yaw: data.head_yaw.try_into().unwrap(),
+                head_yaw: data.head_yaw.try_into().ok()?,
             };
             let mut buf = Vec::new();
             pumpkin_core::net::java::JavaClient::write_packet_for_version(&p, version, &mut buf)
@@ -431,7 +431,7 @@ pub fn serialize_java_packet(
         ClientboundPacket::CHurtAnimation(data) => {
             let p = pumpkin_protocol::java::client::play::CHurtAnimation {
                 entity_id: VarInt(data.entity_id),
-                yaw: data.yaw.try_into().unwrap(),
+                yaw: data.yaw.try_into().ok()?,
             };
             let mut buf = Vec::new();
             pumpkin_core::net::java::JavaClient::write_packet_for_version(&p, version, &mut buf)
@@ -440,10 +440,10 @@ pub fn serialize_java_packet(
         }
         ClientboundPacket::CInitializeWorldBorder(data) => {
             let p = pumpkin_protocol::java::client::play::CInitializeWorldBorder {
-                x: data.x.try_into().unwrap(),
-                z: data.z.try_into().unwrap(),
-                old_diameter: data.old_diameter.try_into().unwrap(),
-                new_diameter: data.new_diameter.try_into().unwrap(),
+                x: data.x.try_into().ok()?,
+                z: data.z.try_into().ok()?,
+                old_diameter: data.old_diameter.try_into().ok()?,
+                new_diameter: data.new_diameter.try_into().ok()?,
                 speed: pumpkin_protocol::codec::var_long::VarLong(data.speed.try_into().unwrap()),
                 portal_teleport_boundary: VarInt(data.portal_teleport_boundary),
                 warning_blocks: VarInt(data.warning_blocks),
@@ -466,7 +466,7 @@ pub fn serialize_java_packet(
         }
         ClientboundPacket::CKeepAlive(data) => {
             let p = pumpkin_protocol::java::client::play::CKeepAlive {
-                keep_alive_id: data.keep_alive_id.try_into().unwrap(),
+                keep_alive_id: data.keep_alive_id.try_into().ok()?,
             };
             let mut buf = Vec::new();
             pumpkin_core::net::java::JavaClient::write_packet_for_version(&p, version, &mut buf)
@@ -475,14 +475,14 @@ pub fn serialize_java_packet(
         }
         ClientboundPacket::CLevelEvent(data) => {
             let p = pumpkin_protocol::java::client::play::CLevelEvent {
-                event: data.event.try_into().unwrap(),
+                event: data.event.try_into().ok()?,
                 location: pumpkin_util::math::position::BlockPos::new(
                     data.location.0,
                     data.location.1,
                     data.location.2,
                 ),
-                data: data.data.try_into().unwrap(),
-                disable_relative_volume: data.disable_relative_volume.try_into().unwrap(),
+                data: data.data.try_into().ok()?,
+                disable_relative_volume: data.disable_relative_volume.try_into().ok()?,
             };
             let mut buf = Vec::new();
             pumpkin_core::net::java::JavaClient::write_packet_for_version(&p, version, &mut buf)
@@ -491,11 +491,11 @@ pub fn serialize_java_packet(
         }
         ClientboundPacket::CMoveVehicle(data) => {
             let p = pumpkin_protocol::java::client::play::CMoveVehicle {
-                x: data.x.try_into().unwrap(),
-                y: data.y.try_into().unwrap(),
-                z: data.z.try_into().unwrap(),
-                yaw: data.yaw.try_into().unwrap(),
-                pitch: data.pitch.try_into().unwrap(),
+                x: data.x.try_into().ok()?,
+                y: data.y.try_into().ok()?,
+                z: data.z.try_into().ok()?,
+                yaw: data.yaw.try_into().ok()?,
+                pitch: data.pitch.try_into().ok()?,
             };
             let mut buf = Vec::new();
             pumpkin_core::net::java::JavaClient::write_packet_for_version(&p, version, &mut buf)
@@ -513,9 +513,9 @@ pub fn serialize_java_packet(
         }
         ClientboundPacket::COpenMountScreen(data) => {
             let p = pumpkin_protocol::java::client::play::COpenMountScreen {
-                window_id: data.window_id.try_into().unwrap(),
+                window_id: data.window_id.try_into().ok()?,
                 slot_count: VarInt(data.slot_count),
-                entity_id: data.entity_id.try_into().unwrap(),
+                entity_id: data.entity_id.try_into().ok()?,
             };
             let mut buf = Vec::new();
             pumpkin_core::net::java::JavaClient::write_packet_for_version(&p, version, &mut buf)
@@ -542,7 +542,7 @@ pub fn serialize_java_packet(
                     data.location.1,
                     data.location.2,
                 ),
-                is_front_text: data.is_front_text.try_into().unwrap(),
+                is_front_text: data.is_front_text.try_into().ok()?,
             };
             let mut buf = Vec::new();
             pumpkin_core::net::java::JavaClient::write_packet_for_version(&p, version, &mut buf)
@@ -551,8 +551,8 @@ pub fn serialize_java_packet(
         }
         ClientboundPacket::CParticle(data) => {
             let p = pumpkin_protocol::java::client::play::CParticle {
-                force_spawn: data.force_spawn.try_into().unwrap(),
-                important: data.important.try_into().unwrap(),
+                force_spawn: data.force_spawn.try_into().ok()?,
+                important: data.important.try_into().ok()?,
                 position: pumpkin_util::math::vector3::Vector3::new(
                     data.position.0 as _,
                     data.position.1 as _,
@@ -563,8 +563,8 @@ pub fn serialize_java_packet(
                     data.offset.1 as _,
                     data.offset.2 as _,
                 ),
-                max_speed: data.max_speed.try_into().unwrap(),
-                particle_count: data.particle_count.try_into().unwrap(),
+                max_speed: data.max_speed.try_into().ok()?,
+                particle_count: data.particle_count.try_into().ok()?,
                 particle_id: VarInt(data.particle_id),
                 data: &data.data,
             };
@@ -575,7 +575,7 @@ pub fn serialize_java_packet(
         }
         ClientboundPacket::CPlayPing(data) => {
             let p = pumpkin_protocol::java::client::play::CPlayPing {
-                id: data.id.try_into().unwrap(),
+                id: data.id.try_into().ok()?,
             };
             let mut buf = Vec::new();
             pumpkin_core::net::java::JavaClient::write_packet_for_version(&p, version, &mut buf)
@@ -584,7 +584,7 @@ pub fn serialize_java_packet(
         }
         ClientboundPacket::CPingResponse(data) => {
             let p = pumpkin_protocol::java::client::play::CPingResponse {
-                payload: data.payload.try_into().unwrap(),
+                payload: data.payload.try_into().ok()?,
             };
             let mut buf = Vec::new();
             pumpkin_core::net::java::JavaClient::write_packet_for_version(&p, version, &mut buf)
@@ -593,7 +593,7 @@ pub fn serialize_java_packet(
         }
         ClientboundPacket::CPlaceGhostRecipe(data) => {
             let p = pumpkin_protocol::java::client::play::CPlaceGhostRecipe {
-                window_id: data.window_id.try_into().unwrap(),
+                window_id: data.window_id.try_into().ok()?,
                 recipe_id: &data.recipe_id,
             };
             let mut buf = Vec::new();
@@ -603,9 +603,9 @@ pub fn serialize_java_packet(
         }
         ClientboundPacket::CPlayerAbilities(data) => {
             let p = pumpkin_protocol::java::client::play::CPlayerAbilities {
-                flags: data.flags.try_into().unwrap(),
-                flying_speed: data.flying_speed.try_into().unwrap(),
-                field_of_view: data.field_of_view.try_into().unwrap(),
+                flags: data.flags.cast_signed(),
+                flying_speed: data.flying_speed.try_into().ok()?,
+                field_of_view: data.field_of_view.try_into().ok()?,
             };
             let mut buf = Vec::new();
             pumpkin_core::net::java::JavaClient::write_packet_for_version(&p, version, &mut buf)
@@ -628,8 +628,8 @@ pub fn serialize_java_packet(
         }
         ClientboundPacket::CPlayerRotation(data) => {
             let p = pumpkin_protocol::java::client::play::CPlayerRotation {
-                yaw: data.yaw.try_into().unwrap(),
-                pitch: data.pitch.try_into().unwrap(),
+                yaw: data.yaw.try_into().ok()?,
+                pitch: data.pitch.try_into().ok()?,
             };
             let mut buf = Vec::new();
             pumpkin_core::net::java::JavaClient::write_packet_for_version(&p, version, &mut buf)
@@ -644,8 +644,8 @@ pub fn serialize_java_packet(
                     data.location.1,
                     data.location.2,
                 ),
-                yaw: data.yaw.try_into().unwrap(),
-                pitch: data.pitch.try_into().unwrap(),
+                yaw: data.yaw.try_into().ok()?,
+                pitch: data.pitch.try_into().ok()?,
             };
             let mut buf = Vec::new();
             pumpkin_core::net::java::JavaClient::write_packet_for_version(&p, version, &mut buf)
@@ -664,9 +664,9 @@ pub fn serialize_java_packet(
         ClientboundPacket::CProjectilePower(data) => {
             let p = pumpkin_protocol::java::client::play::CProjectilePower {
                 entity_id: VarInt(data.entity_id),
-                x_power: data.x_power.try_into().unwrap(),
-                y_power: data.y_power.try_into().unwrap(),
-                z_power: data.z_power.try_into().unwrap(),
+                x_power: data.x_power.try_into().ok()?,
+                y_power: data.y_power.try_into().ok()?,
+                z_power: data.z_power.try_into().ok()?,
             };
             let mut buf = Vec::new();
             pumpkin_core::net::java::JavaClient::write_packet_for_version(&p, version, &mut buf)
@@ -675,7 +675,7 @@ pub fn serialize_java_packet(
         }
         ClientboundPacket::CRecipeBookAdd(data) => {
             let p = pumpkin_protocol::java::client::play::CRecipeBookAdd {
-                replace: data.replace.try_into().unwrap(),
+                replace: data.replace.try_into().ok()?,
                 dynamic_recipes: &[],
             };
             let mut buf = Vec::new();
@@ -695,14 +695,14 @@ pub fn serialize_java_packet(
         }
         ClientboundPacket::CRecipeBookSettings(data) => {
             let p = pumpkin_protocol::java::client::play::CRecipeBookSettings {
-                crafting_open: data.crafting_open.try_into().unwrap(),
-                crafting_filtering: data.crafting_filtering.try_into().unwrap(),
-                furnace_open: data.furnace_open.try_into().unwrap(),
-                furnace_filtering: data.furnace_filtering.try_into().unwrap(),
-                blast_furnace_open: data.blast_furnace_open.try_into().unwrap(),
-                blast_furnace_filtering: data.blast_furnace_filtering.try_into().unwrap(),
-                smoker_open: data.smoker_open.try_into().unwrap(),
-                smoker_filtering: data.smoker_filtering.try_into().unwrap(),
+                crafting_open: data.crafting_open.try_into().ok()?,
+                crafting_filtering: data.crafting_filtering.try_into().ok()?,
+                furnace_open: data.furnace_open.try_into().ok()?,
+                furnace_filtering: data.furnace_filtering.try_into().ok()?,
+                blast_furnace_open: data.blast_furnace_open.try_into().ok()?,
+                blast_furnace_filtering: data.blast_furnace_filtering.try_into().ok()?,
+                smoker_open: data.smoker_open.try_into().ok()?,
+                smoker_filtering: data.smoker_filtering.try_into().ok()?,
             };
             let mut buf = Vec::new();
             pumpkin_core::net::java::JavaClient::write_packet_for_version(&p, version, &mut buf)
@@ -731,8 +731,8 @@ pub fn serialize_java_packet(
         }
         ClientboundPacket::CSetBorderCenter(data) => {
             let p = pumpkin_protocol::java::client::play::CSetBorderCenter {
-                x: data.x.try_into().unwrap(),
-                z: data.z.try_into().unwrap(),
+                x: data.x.try_into().ok()?,
+                z: data.z.try_into().ok()?,
             };
             let mut buf = Vec::new();
             pumpkin_core::net::java::JavaClient::write_packet_for_version(&p, version, &mut buf)
@@ -741,8 +741,8 @@ pub fn serialize_java_packet(
         }
         ClientboundPacket::CSetBorderLerpSize(data) => {
             let p = pumpkin_protocol::java::client::play::CSetBorderLerpSize {
-                old_diameter: data.old_diameter.try_into().unwrap(),
-                new_diameter: data.new_diameter.try_into().unwrap(),
+                old_diameter: data.old_diameter.try_into().ok()?,
+                new_diameter: data.new_diameter.try_into().ok()?,
                 speed: pumpkin_protocol::codec::var_long::VarLong(data.speed.try_into().unwrap()),
             };
             let mut buf = Vec::new();
@@ -752,7 +752,7 @@ pub fn serialize_java_packet(
         }
         ClientboundPacket::CSetBorderSize(data) => {
             let p = pumpkin_protocol::java::client::play::CSetBorderSize {
-                diameter: data.diameter.try_into().unwrap(),
+                diameter: data.diameter.try_into().ok()?,
             };
             let mut buf = Vec::new();
             pumpkin_core::net::java::JavaClient::write_packet_for_version(&p, version, &mut buf)
@@ -798,8 +798,8 @@ pub fn serialize_java_packet(
         ClientboundPacket::CSetContainerProperty(data) => {
             let p = pumpkin_protocol::java::client::play::CSetContainerProperty {
                 window_id: VarInt(data.window_id),
-                property: data.property.try_into().unwrap(),
-                value: data.value.try_into().unwrap(),
+                property: data.property.try_into().ok()?,
+                value: data.value.try_into().ok()?,
             };
             let mut buf = Vec::new();
             pumpkin_core::net::java::JavaClient::write_packet_for_version(&p, version, &mut buf)
@@ -808,9 +808,9 @@ pub fn serialize_java_packet(
         }
         ClientboundPacket::CSetEntityLink(data) => {
             let p = pumpkin_protocol::java::client::play::CSetEntityLink {
-                attached_entity_id: data.attached_entity_id.try_into().unwrap(),
-                holding_entity_id: data.holding_entity_id.try_into().unwrap(),
-                leash: data.leash.try_into().unwrap(),
+                attached_entity_id: data.attached_entity_id.try_into().ok()?,
+                holding_entity_id: data.holding_entity_id.try_into().ok()?,
+                leash: data.leash.try_into().ok()?,
             };
             let mut buf = Vec::new();
             pumpkin_core::net::java::JavaClient::write_packet_for_version(&p, version, &mut buf)
@@ -819,7 +819,7 @@ pub fn serialize_java_packet(
         }
         ClientboundPacket::CSetExperience(data) => {
             let p = pumpkin_protocol::java::client::play::CSetExperience {
-                progress: data.progress.try_into().unwrap(),
+                progress: data.progress.try_into().ok()?,
                 level: VarInt(data.level),
                 total_experience: VarInt(data.total_experience),
             };
@@ -830,9 +830,9 @@ pub fn serialize_java_packet(
         }
         ClientboundPacket::CSetHealth(data) => {
             let p = pumpkin_protocol::java::client::play::CSetHealth {
-                health: data.health.try_into().unwrap(),
+                health: data.health.try_into().ok()?,
                 food: VarInt(data.food),
-                food_saturation: data.food_saturation.try_into().unwrap(),
+                food_saturation: data.food_saturation.try_into().ok()?,
             };
             let mut buf = Vec::new();
             pumpkin_core::net::java::JavaClient::write_packet_for_version(&p, version, &mut buf)
@@ -871,9 +871,9 @@ pub fn serialize_java_packet(
         }
         ClientboundPacket::CTitleAnimation(data) => {
             let p = pumpkin_protocol::java::client::play::CTitleAnimation {
-                fade_in_ticks: data.fade_in_ticks.try_into().unwrap(),
-                stay_ticks: data.stay_ticks.try_into().unwrap(),
-                fade_out_ticks: data.fade_out_ticks.try_into().unwrap(),
+                fade_in_ticks: data.fade_in_ticks.try_into().ok()?,
+                stay_ticks: data.stay_ticks.try_into().ok()?,
+                fade_out_ticks: data.fade_out_ticks.try_into().ok()?,
             };
             let mut buf = Vec::new();
             pumpkin_core::net::java::JavaClient::write_packet_for_version(&p, version, &mut buf)
@@ -900,9 +900,9 @@ pub fn serialize_java_packet(
                         parsed_velocity[2],
                     ),
                 ),
-                pitch: data.pitch.try_into().unwrap(),
-                yaw: data.yaw.try_into().unwrap(),
-                head_yaw: data.head_yaw.try_into().unwrap(),
+                pitch: data.pitch.try_into().ok()?,
+                yaw: data.yaw.try_into().ok()?,
+                head_yaw: data.head_yaw.try_into().ok()?,
                 data: VarInt(data.data),
             };
             let mut buf = Vec::new();
@@ -955,8 +955,8 @@ pub fn serialize_java_packet(
         }
         ClientboundPacket::CTickingState(data) => {
             let p = pumpkin_protocol::java::client::play::CTickingState {
-                tick_rate: data.tick_rate.try_into().unwrap(),
-                is_frozen: data.is_frozen.try_into().unwrap(),
+                tick_rate: data.tick_rate.try_into().ok()?,
+                is_frozen: data.is_frozen.try_into().ok()?,
             };
             let mut buf = Vec::new();
             pumpkin_core::net::java::JavaClient::write_packet_for_version(&p, version, &mut buf)
@@ -984,8 +984,8 @@ pub fn serialize_java_packet(
         }
         ClientboundPacket::CUnloadChunk(data) => {
             let p = pumpkin_protocol::java::client::play::CUnloadChunk {
-                x: data.x.try_into().unwrap(),
-                z: data.z.try_into().unwrap(),
+                x: data.x.try_into().ok()?,
+                z: data.z.try_into().ok()?,
             };
             let mut buf = Vec::new();
             pumpkin_core::net::java::JavaClient::write_packet_for_version(&p, version, &mut buf)
@@ -1000,7 +1000,7 @@ pub fn serialize_java_packet(
                     data.delta.1 as _,
                     data.delta.2 as _,
                 ),
-                on_ground: data.on_ground.try_into().unwrap(),
+                on_ground: data.on_ground.try_into().ok()?,
             };
             let mut buf = Vec::new();
             pumpkin_core::net::java::JavaClient::write_packet_for_version(&p, version, &mut buf)
@@ -1015,9 +1015,9 @@ pub fn serialize_java_packet(
                     data.delta.1 as _,
                     data.delta.2 as _,
                 ),
-                yaw: data.yaw.try_into().unwrap(),
-                pitch: data.pitch.try_into().unwrap(),
-                on_ground: data.on_ground.try_into().unwrap(),
+                yaw: data.yaw.try_into().ok()?,
+                pitch: data.pitch.try_into().ok()?,
+                on_ground: data.on_ground.try_into().ok()?,
             };
             let mut buf = Vec::new();
             pumpkin_core::net::java::JavaClient::write_packet_for_version(&p, version, &mut buf)
@@ -1027,9 +1027,9 @@ pub fn serialize_java_packet(
         ClientboundPacket::CUpdateEntityRot(data) => {
             let p = pumpkin_protocol::java::client::play::CUpdateEntityRot {
                 entity_id: VarInt(data.entity_id),
-                yaw: data.yaw.try_into().unwrap(),
-                pitch: data.pitch.try_into().unwrap(),
-                on_ground: data.on_ground.try_into().unwrap(),
+                yaw: data.yaw.try_into().ok()?,
+                pitch: data.pitch.try_into().ok()?,
+                on_ground: data.on_ground.try_into().ok()?,
             };
             let mut buf = Vec::new();
             pumpkin_core::net::java::JavaClient::write_packet_for_version(&p, version, &mut buf)
@@ -1042,7 +1042,7 @@ pub fn serialize_java_packet(
                 effect_id: VarInt(data.effect_id),
                 amplifier: VarInt(data.amplifier),
                 duration: VarInt(data.duration),
-                flags: data.flags.try_into().unwrap(),
+                flags: data.flags.cast_signed(),
             };
             let mut buf = Vec::new();
             pumpkin_core::net::java::JavaClient::write_packet_for_version(&p, version, &mut buf)
@@ -1060,14 +1060,14 @@ pub fn serialize_java_packet(
         }
         ClientboundPacket::CWorldEvent(data) => {
             let p = pumpkin_protocol::java::client::play::CWorldEvent {
-                event: data.event.try_into().unwrap(),
+                event: data.event.try_into().ok()?,
                 location: pumpkin_util::math::position::BlockPos::new(
                     data.location.0,
                     data.location.1,
                     data.location.2,
                 ),
-                data: data.data.try_into().unwrap(),
-                disable_relative_volume: data.disable_relative_volume.try_into().unwrap(),
+                data: data.data.try_into().ok()?,
+                disable_relative_volume: data.disable_relative_volume.try_into().ok()?,
             };
             let mut buf = Vec::new();
             pumpkin_core::net::java::JavaClient::write_packet_for_version(&p, version, &mut buf)
@@ -1076,7 +1076,7 @@ pub fn serialize_java_packet(
         }
         ClientboundPacket::StatusCPingResponse(data) => {
             let p = pumpkin_protocol::java::client::status::CPingResponse {
-                payload: data.payload.try_into().unwrap(),
+                payload: data.payload.try_into().ok()?,
             };
             let mut buf = Vec::new();
             pumpkin_core::net::java::JavaClient::write_packet_for_version(&p, version, &mut buf)
@@ -1111,13 +1111,13 @@ pub fn deserialize_java_serverbound_packet(
             Some(ServerboundPacket::ConfigSClientInformationConfig(
                 crate::pumpkin::plugin::java_packets::ConfigSClientInformationConfig {
                     locale: p.locale.into(),
-                    view_distance: p.view_distance.try_into().unwrap(),
-                    chat_mode: p.chat_mode.0.try_into().unwrap(),
-                    chat_colors: p.chat_colors.try_into().unwrap(),
-                    skin_parts: p.skin_parts.try_into().unwrap(),
-                    main_hand: p.main_hand.0.try_into().unwrap(),
-                    text_filtering: p.text_filtering.try_into().unwrap(),
-                    server_listing: p.server_listing.try_into().unwrap(),
+                    view_distance: p.view_distance.cast_unsigned(),
+                    chat_mode: p.chat_mode.0.try_into().ok()?,
+                    chat_colors: p.chat_colors.try_into().ok()?,
+                    skin_parts: p.skin_parts.try_into().ok()?,
+                    main_hand: p.main_hand.0.try_into().ok()?,
+                    text_filtering: p.text_filtering.try_into().ok()?,
+                    server_listing: p.server_listing.try_into().ok()?,
                 },
             ))
         }
@@ -1126,7 +1126,7 @@ pub fn deserialize_java_serverbound_packet(
             let p = <pumpkin_protocol::java::server::config::SKeepAlive as pumpkin_protocol::ServerPacket>::read(&mut payload, &version).ok()?;
             Some(ServerboundPacket::ConfigSKeepAlive(
                 crate::pumpkin::plugin::java_packets::ConfigSKeepAlive {
-                    keep_alive_id: p.keep_alive_id.try_into().unwrap(),
+                    keep_alive_id: p.keep_alive_id.try_into().ok()?,
                 },
             ))
         }
@@ -1145,7 +1145,7 @@ pub fn deserialize_java_serverbound_packet(
             let p = <pumpkin_protocol::java::server::config::SConfigPong as pumpkin_protocol::ServerPacket>::read(&mut payload, &version).ok()?;
             Some(ServerboundPacket::ConfigSConfigPong(
                 crate::pumpkin::plugin::java_packets::ConfigSConfigPong {
-                    id: p.id.try_into().unwrap(),
+                    id: p.id.try_into().ok()?,
                 },
             ))
         }
@@ -1158,7 +1158,7 @@ pub fn deserialize_java_serverbound_packet(
                         high: p.uuid.as_u64_pair().1,
                         low: p.uuid.as_u64_pair().0,
                     },
-                    result: p.result.0.try_into().unwrap(),
+                    result: p.result.0.try_into().ok()?,
                 },
             ))
         }
@@ -1167,7 +1167,7 @@ pub fn deserialize_java_serverbound_packet(
             let p = <pumpkin_protocol::java::server::play::SAttack as pumpkin_protocol::ServerPacket>::read(&mut payload, &version).ok()?;
             Some(ServerboundPacket::SAttack(
                 crate::pumpkin::plugin::java_packets::SAttack {
-                    entity_id: p.entity_id.0.try_into().unwrap(),
+                    entity_id: p.entity_id.0.try_into().ok()?,
                 },
             ))
         }
@@ -1176,7 +1176,7 @@ pub fn deserialize_java_serverbound_packet(
             let p = <pumpkin_protocol::java::server::play::SBlockEntityTagQuery as pumpkin_protocol::ServerPacket>::read(&mut payload, &version).ok()?;
             Some(ServerboundPacket::SBlockEntityTagQuery(
                 crate::pumpkin::plugin::java_packets::SBlockEntityTagQuery {
-                    transaction_id: p.transaction_id.0.try_into().unwrap(),
+                    transaction_id: p.transaction_id.0.try_into().ok()?,
                     location: (p.location.0.x, p.location.0.y, p.location.0.z),
                 },
             ))
@@ -1186,8 +1186,8 @@ pub fn deserialize_java_serverbound_packet(
             let p = <pumpkin_protocol::java::server::play::SBundleItemSelected as pumpkin_protocol::ServerPacket>::read(&mut payload, &version).ok()?;
             Some(ServerboundPacket::SBundleItemSelected(
                 crate::pumpkin::plugin::java_packets::SBundleItemSelected {
-                    slot_id: p.slot_id.0.try_into().unwrap(),
-                    selected_item_index: p.selected_item_index.0.try_into().unwrap(),
+                    slot_id: p.slot_id.0.try_into().ok()?,
+                    selected_item_index: p.selected_item_index.0.try_into().ok()?,
                 },
             ))
         }
@@ -1196,7 +1196,7 @@ pub fn deserialize_java_serverbound_packet(
             let p = <pumpkin_protocol::java::server::play::SChatAck as pumpkin_protocol::ServerPacket>::read(&mut payload, &version).ok()?;
             Some(ServerboundPacket::SChatAck(
                 crate::pumpkin::plugin::java_packets::SChatAck {
-                    offset: p.offset.0.try_into().unwrap(),
+                    offset: p.offset.0.try_into().ok()?,
                 },
             ))
         }
@@ -1214,7 +1214,7 @@ pub fn deserialize_java_serverbound_packet(
             let p = <pumpkin_protocol::java::server::play::SChunkBatch as pumpkin_protocol::ServerPacket>::read(&mut payload, &version).ok()?;
             Some(ServerboundPacket::SChunkBatch(
                 crate::pumpkin::plugin::java_packets::SChunkBatch {
-                    chunks_per_tick: p.chunks_per_tick.try_into().unwrap(),
+                    chunks_per_tick: p.chunks_per_tick.try_into().ok()?,
                 },
             ))
         }
@@ -1223,7 +1223,7 @@ pub fn deserialize_java_serverbound_packet(
             let p = <pumpkin_protocol::java::server::play::SClientCommand as pumpkin_protocol::ServerPacket>::read(&mut payload, &version).ok()?;
             Some(ServerboundPacket::SClientCommand(
                 crate::pumpkin::plugin::java_packets::SClientCommand {
-                    action_id: p.action_id.0.try_into().unwrap(),
+                    action_id: p.action_id.0.try_into().ok()?,
                 },
             ))
         }
@@ -1235,13 +1235,13 @@ pub fn deserialize_java_serverbound_packet(
             Some(ServerboundPacket::SClientInformationPlay(
                 crate::pumpkin::plugin::java_packets::SClientInformationPlay {
                     locale: p.locale.into(),
-                    view_distance: p.view_distance.try_into().unwrap(),
-                    chat_mode: p.chat_mode.0.try_into().unwrap(),
-                    chat_colors: p.chat_colors.try_into().unwrap(),
-                    skin_parts: p.skin_parts.try_into().unwrap(),
-                    main_hand: p.main_hand.0.try_into().unwrap(),
-                    text_filtering: p.text_filtering.try_into().unwrap(),
-                    server_listing: p.server_listing.try_into().unwrap(),
+                    view_distance: p.view_distance.cast_unsigned(),
+                    chat_mode: p.chat_mode.0.try_into().ok()?,
+                    chat_colors: p.chat_colors.try_into().ok()?,
+                    skin_parts: p.skin_parts.try_into().ok()?,
+                    main_hand: p.main_hand.0.try_into().ok()?,
+                    text_filtering: p.text_filtering.try_into().ok()?,
+                    server_listing: p.server_listing.try_into().ok()?,
                 },
             ))
         }
@@ -1250,7 +1250,7 @@ pub fn deserialize_java_serverbound_packet(
             let p = <pumpkin_protocol::java::server::play::SCloseContainer as pumpkin_protocol::ServerPacket>::read(&mut payload, &version).ok()?;
             Some(ServerboundPacket::SCloseContainer(
                 crate::pumpkin::plugin::java_packets::SCloseContainer {
-                    window_id: p.window_id.0.try_into().unwrap(),
+                    window_id: p.window_id.0.try_into().ok()?,
                 },
             ))
         }
@@ -1259,7 +1259,7 @@ pub fn deserialize_java_serverbound_packet(
             let p = <pumpkin_protocol::java::server::play::SCommandSuggestion as pumpkin_protocol::ServerPacket>::read(&mut payload, &version).ok()?;
             Some(ServerboundPacket::SCommandSuggestion(
                 crate::pumpkin::plugin::java_packets::SCommandSuggestion {
-                    id: p.id.0.try_into().unwrap(),
+                    id: p.id.0.try_into().ok()?,
                     command: p.command.into(),
                 },
             ))
@@ -1269,8 +1269,8 @@ pub fn deserialize_java_serverbound_packet(
             let p = <pumpkin_protocol::java::server::play::SContainerButtonClick as pumpkin_protocol::ServerPacket>::read(&mut payload, &version).ok()?;
             Some(ServerboundPacket::SContainerButtonClick(
                 crate::pumpkin::plugin::java_packets::SContainerButtonClick {
-                    window_id: p.window_id.0.try_into().unwrap(),
-                    button_id: p.button_id.0.try_into().unwrap(),
+                    window_id: p.window_id.0.try_into().ok()?,
+                    button_id: p.button_id.0.try_into().ok()?,
                 },
             ))
         }
@@ -1281,9 +1281,9 @@ pub fn deserialize_java_serverbound_packet(
             let p = <pumpkin_protocol::java::server::play::SContainerSlotStateChanged as pumpkin_protocol::ServerPacket>::read(&mut payload, &version).ok()?;
             Some(ServerboundPacket::SContainerSlotStateChanged(
                 crate::pumpkin::plugin::java_packets::SContainerSlotStateChanged {
-                    slot_id: p.slot_id.0.try_into().unwrap(),
-                    container_id: p.container_id.0.try_into().unwrap(),
-                    new_state: p.new_state.try_into().unwrap(),
+                    slot_id: p.slot_id.0.try_into().ok()?,
+                    container_id: p.container_id.0.try_into().ok()?,
+                    new_state: p.new_state.try_into().ok()?,
                 },
             ))
         }
@@ -1304,7 +1304,7 @@ pub fn deserialize_java_serverbound_packet(
             let p = <pumpkin_protocol::java::server::play::SDebugSampleSubscription as pumpkin_protocol::ServerPacket>::read(&mut payload, &version).ok()?;
             Some(ServerboundPacket::SDebugSampleSubscription(
                 crate::pumpkin::plugin::java_packets::SDebugSampleSubscription {
-                    sample_type: p.sample_type.0.try_into().unwrap(),
+                    sample_type: p.sample_type.0.try_into().ok()?,
                 },
             ))
         }
@@ -1315,7 +1315,7 @@ pub fn deserialize_java_serverbound_packet(
             let p = <pumpkin_protocol::java::server::play::SDebugSubscriptionRequest as pumpkin_protocol::ServerPacket>::read(&mut payload, &version).ok()?;
             Some(ServerboundPacket::SDebugSubscriptionRequest(
                 crate::pumpkin::plugin::java_packets::SDebugSubscriptionRequest {
-                    sample_type: p.sample_type.0.try_into().unwrap(),
+                    sample_type: p.sample_type.0.try_into().ok()?,
                 },
             ))
         }
@@ -1324,8 +1324,8 @@ pub fn deserialize_java_serverbound_packet(
             let p = <pumpkin_protocol::java::server::play::SEntityTagQuery as pumpkin_protocol::ServerPacket>::read(&mut payload, &version).ok()?;
             Some(ServerboundPacket::SEntityTagQuery(
                 crate::pumpkin::plugin::java_packets::SEntityTagQuery {
-                    transaction_id: p.transaction_id.0.try_into().unwrap(),
-                    entity_id: p.entity_id.0.try_into().unwrap(),
+                    transaction_id: p.transaction_id.0.try_into().ok()?,
+                    entity_id: p.entity_id.0.try_into().ok()?,
                 },
             ))
         }
@@ -1335,8 +1335,8 @@ pub fn deserialize_java_serverbound_packet(
             Some(ServerboundPacket::SJigsawGenerate(
                 crate::pumpkin::plugin::java_packets::SJigsawGenerate {
                     pos: (p.pos.0.x, p.pos.0.y, p.pos.0.z),
-                    levels: p.levels.0.try_into().unwrap(),
-                    keep_jigsaws: p.keep_jigsaws.try_into().unwrap(),
+                    levels: p.levels.0.try_into().ok()?,
+                    keep_jigsaws: p.keep_jigsaws.try_into().ok()?,
                 },
             ))
         }
@@ -1345,7 +1345,7 @@ pub fn deserialize_java_serverbound_packet(
             let p = <pumpkin_protocol::java::server::play::SKeepAlive as pumpkin_protocol::ServerPacket>::read(&mut payload, &version).ok()?;
             Some(ServerboundPacket::SKeepAlive(
                 crate::pumpkin::plugin::java_packets::SKeepAlive {
-                    keep_alive_id: p.keep_alive_id.try_into().unwrap(),
+                    keep_alive_id: p.keep_alive_id.try_into().ok()?,
                 },
             ))
         }
@@ -1354,7 +1354,7 @@ pub fn deserialize_java_serverbound_packet(
             let p = <pumpkin_protocol::java::server::play::SLockDifficulty as pumpkin_protocol::ServerPacket>::read(&mut payload, &version).ok()?;
             Some(ServerboundPacket::SLockDifficulty(
                 crate::pumpkin::plugin::java_packets::SLockDifficulty {
-                    locked: p.locked.try_into().unwrap(),
+                    locked: p.locked.try_into().ok()?,
                 },
             ))
         }
@@ -1363,12 +1363,12 @@ pub fn deserialize_java_serverbound_packet(
             let p = <pumpkin_protocol::java::server::play::SMoveVehicle as pumpkin_protocol::ServerPacket>::read(&mut payload, &version).ok()?;
             Some(ServerboundPacket::SMoveVehicle(
                 crate::pumpkin::plugin::java_packets::SMoveVehicle {
-                    x: p.x.try_into().unwrap(),
-                    y: p.y.try_into().unwrap(),
-                    z: p.z.try_into().unwrap(),
-                    yaw: p.yaw.try_into().unwrap(),
-                    pitch: p.pitch.try_into().unwrap(),
-                    on_ground: p.on_ground.try_into().unwrap(),
+                    x: p.x.try_into().ok()?,
+                    y: p.y.try_into().ok()?,
+                    z: p.z.try_into().ok()?,
+                    yaw: p.yaw.try_into().ok()?,
+                    pitch: p.pitch.try_into().ok()?,
+                    on_ground: p.on_ground.try_into().ok()?,
                 },
             ))
         }
@@ -1377,8 +1377,8 @@ pub fn deserialize_java_serverbound_packet(
             let p = <pumpkin_protocol::java::server::play::SPaddleBoat as pumpkin_protocol::ServerPacket>::read(&mut payload, &version).ok()?;
             Some(ServerboundPacket::SPaddleBoat(
                 crate::pumpkin::plugin::java_packets::SPaddleBoat {
-                    left_paddle: p.left_paddle.try_into().unwrap(),
-                    right_paddle: p.right_paddle.try_into().unwrap(),
+                    left_paddle: p.left_paddle.try_into().ok()?,
+                    right_paddle: p.right_paddle.try_into().ok()?,
                 },
             ))
         }
@@ -1388,7 +1388,7 @@ pub fn deserialize_java_serverbound_packet(
             Some(ServerboundPacket::SPickItemFromBlock(
                 crate::pumpkin::plugin::java_packets::SPickItemFromBlock {
                     pos: (p.pos.0.x, p.pos.0.y, p.pos.0.z),
-                    include_data: p.include_data.try_into().unwrap(),
+                    include_data: p.include_data.try_into().ok()?,
                 },
             ))
         }
@@ -1397,8 +1397,8 @@ pub fn deserialize_java_serverbound_packet(
             let p = <pumpkin_protocol::java::server::play::SPickItemFromEntity as pumpkin_protocol::ServerPacket>::read(&mut payload, &version).ok()?;
             Some(ServerboundPacket::SPickItemFromEntity(
                 crate::pumpkin::plugin::java_packets::SPickItemFromEntity {
-                    id: p.id.0.try_into().unwrap(),
-                    include_data: p.include_data.try_into().unwrap(),
+                    id: p.id.0.try_into().ok()?,
+                    include_data: p.include_data.try_into().ok()?,
                 },
             ))
         }
@@ -1407,7 +1407,7 @@ pub fn deserialize_java_serverbound_packet(
             let p = <pumpkin_protocol::java::server::play::SPlayPingRequest as pumpkin_protocol::ServerPacket>::read(&mut payload, &version).ok()?;
             Some(ServerboundPacket::SPlayPingRequest(
                 crate::pumpkin::plugin::java_packets::SPlayPingRequest {
-                    payload: p.payload.try_into().unwrap(),
+                    payload: p.payload.try_into().ok()?,
                 },
             ))
         }
@@ -1416,9 +1416,9 @@ pub fn deserialize_java_serverbound_packet(
             let p = <pumpkin_protocol::java::server::play::SPlaceRecipe as pumpkin_protocol::ServerPacket>::read(&mut payload, &version).ok()?;
             Some(ServerboundPacket::SPlaceRecipe(
                 crate::pumpkin::plugin::java_packets::SPlaceRecipe {
-                    container_id: p.container_id.try_into().unwrap(),
-                    recipe_display_id: p.recipe_display_id.0.try_into().unwrap(),
-                    use_max_items: p.use_max_items.try_into().unwrap(),
+                    container_id: p.container_id.cast_unsigned(),
+                    recipe_display_id: p.recipe_display_id.0.try_into().ok()?,
+                    use_max_items: p.use_max_items.try_into().ok()?,
                 },
             ))
         }
@@ -1427,10 +1427,10 @@ pub fn deserialize_java_serverbound_packet(
             let p = <pumpkin_protocol::java::server::play::SPlayerAction as pumpkin_protocol::ServerPacket>::read(&mut payload, &version).ok()?;
             Some(ServerboundPacket::SPlayerAction(
                 crate::pumpkin::plugin::java_packets::SPlayerAction {
-                    status: p.status.0.try_into().unwrap(),
+                    status: p.status.0.try_into().ok()?,
                     position: (p.position.0.x, p.position.0.y, p.position.0.z),
-                    face: p.face.try_into().unwrap(),
-                    sequence: p.sequence.0.try_into().unwrap(),
+                    face: p.face.try_into().ok()?,
+                    sequence: p.sequence.0.try_into().ok()?,
                 },
             ))
         }
@@ -1439,7 +1439,7 @@ pub fn deserialize_java_serverbound_packet(
             let p = <pumpkin_protocol::java::server::play::SSetPlayerGround as pumpkin_protocol::ServerPacket>::read(&mut payload, &version).ok()?;
             Some(ServerboundPacket::SSetPlayerGround(
                 crate::pumpkin::plugin::java_packets::SSetPlayerGround {
-                    on_ground: p.on_ground.try_into().unwrap(),
+                    on_ground: p.on_ground.try_into().ok()?,
                 },
             ))
         }
@@ -1448,7 +1448,7 @@ pub fn deserialize_java_serverbound_packet(
             let p = <pumpkin_protocol::java::server::play::SPlayerInput as pumpkin_protocol::ServerPacket>::read(&mut payload, &version).ok()?;
             Some(ServerboundPacket::SPlayerInput(
                 crate::pumpkin::plugin::java_packets::SPlayerInput {
-                    input: p.input.try_into().unwrap(),
+                    input: p.input.cast_unsigned(),
                 },
             ))
         }
@@ -1458,7 +1458,7 @@ pub fn deserialize_java_serverbound_packet(
             Some(ServerboundPacket::SPlayerPosition(
                 crate::pumpkin::plugin::java_packets::SPlayerPosition {
                     position: (p.position.x as _, p.position.y as _, p.position.z as _),
-                    collision: p.collision.try_into().unwrap(),
+                    collision: p.collision.try_into().ok()?,
                 },
             ))
         }
@@ -1470,9 +1470,9 @@ pub fn deserialize_java_serverbound_packet(
             Some(ServerboundPacket::SPlayerPositionRotation(
                 crate::pumpkin::plugin::java_packets::SPlayerPositionRotation {
                     position: (p.position.x as _, p.position.y as _, p.position.z as _),
-                    yaw: p.yaw.try_into().unwrap(),
-                    pitch: p.pitch.try_into().unwrap(),
-                    collision: p.collision.try_into().unwrap(),
+                    yaw: p.yaw.try_into().ok()?,
+                    pitch: p.pitch.try_into().ok()?,
+                    collision: p.collision.try_into().ok()?,
                 },
             ))
         }
@@ -1481,9 +1481,9 @@ pub fn deserialize_java_serverbound_packet(
             let p = <pumpkin_protocol::java::server::play::SPlayerRotation as pumpkin_protocol::ServerPacket>::read(&mut payload, &version).ok()?;
             Some(ServerboundPacket::SPlayerRotation(
                 crate::pumpkin::plugin::java_packets::SPlayerRotation {
-                    yaw: p.yaw.try_into().unwrap(),
-                    pitch: p.pitch.try_into().unwrap(),
-                    ground: p.ground.try_into().unwrap(),
+                    yaw: p.yaw.try_into().ok()?,
+                    pitch: p.pitch.try_into().ok()?,
+                    ground: p.ground.try_into().ok()?,
                 },
             ))
         }
@@ -1496,7 +1496,7 @@ pub fn deserialize_java_serverbound_packet(
                         high: p.session_id.as_u64_pair().1,
                         low: p.session_id.as_u64_pair().0,
                     },
-                    expires_at: p.expires_at.try_into().unwrap(),
+                    expires_at: p.expires_at.try_into().ok()?,
                     public_key: p.public_key.to_vec(),
                     key_signature: p.key_signature.to_vec(),
                 },
@@ -1507,7 +1507,7 @@ pub fn deserialize_java_serverbound_packet(
             let p = <pumpkin_protocol::java::server::play::SPlayPong as pumpkin_protocol::ServerPacket>::read(&mut payload, &version).ok()?;
             Some(ServerboundPacket::SPlayPong(
                 crate::pumpkin::plugin::java_packets::SPlayPong {
-                    id: p.id.try_into().unwrap(),
+                    id: p.id.try_into().ok()?,
                 },
             ))
         }
@@ -1518,9 +1518,9 @@ pub fn deserialize_java_serverbound_packet(
             let p = <pumpkin_protocol::java::server::play::SRecipeBookChangeSettings as pumpkin_protocol::ServerPacket>::read(&mut payload, &version).ok()?;
             Some(ServerboundPacket::SRecipeBookChangeSettings(
                 crate::pumpkin::plugin::java_packets::SRecipeBookChangeSettings {
-                    book_type: p.book_type.0.try_into().unwrap(),
-                    is_open: p.is_open.try_into().unwrap(),
-                    is_filtering: p.is_filtering.try_into().unwrap(),
+                    book_type: p.book_type.0.try_into().ok()?,
+                    is_open: p.is_open.try_into().ok()?,
+                    is_filtering: p.is_filtering.try_into().ok()?,
                 },
             ))
         }
@@ -1529,7 +1529,7 @@ pub fn deserialize_java_serverbound_packet(
             let p = <pumpkin_protocol::java::server::play::SRecipeBookSeenRecipe as pumpkin_protocol::ServerPacket>::read(&mut payload, &version).ok()?;
             Some(ServerboundPacket::SRecipeBookSeenRecipe(
                 crate::pumpkin::plugin::java_packets::SRecipeBookSeenRecipe {
-                    recipe_display_id: p.recipe_display_id.0.try_into().unwrap(),
+                    recipe_display_id: p.recipe_display_id.0.try_into().ok()?,
                 },
             ))
         }
@@ -1551,7 +1551,7 @@ pub fn deserialize_java_serverbound_packet(
                         high: p.uuid.as_u64_pair().1,
                         low: p.uuid.as_u64_pair().0,
                     },
-                    result: p.result.0.try_into().unwrap(),
+                    result: p.result.0.try_into().ok()?,
                 },
             ))
         }
@@ -1578,7 +1578,7 @@ pub fn deserialize_java_serverbound_packet(
             let p = <pumpkin_protocol::java::server::play::SSelectTrade as pumpkin_protocol::ServerPacket>::read(&mut payload, &version).ok()?;
             Some(ServerboundPacket::SSelectTrade(
                 crate::pumpkin::plugin::java_packets::SSelectTrade {
-                    selected_slot: p.selected_slot.0.try_into().unwrap(),
+                    selected_slot: p.selected_slot.0.try_into().ok()?,
                 },
             ))
         }
@@ -1589,8 +1589,8 @@ pub fn deserialize_java_serverbound_packet(
                 crate::pumpkin::plugin::java_packets::SSetCommandBlock {
                     pos: (p.pos.0.x, p.pos.0.y, p.pos.0.z),
                     command: p.command.into(),
-                    mode: p.mode.0.try_into().unwrap(),
-                    flags: p.flags.try_into().unwrap(),
+                    mode: p.mode.0.try_into().ok()?,
+                    flags: p.flags.cast_unsigned(),
                 },
             ))
         }
@@ -1599,9 +1599,9 @@ pub fn deserialize_java_serverbound_packet(
             let p = <pumpkin_protocol::java::server::play::SSetCommandMinecart as pumpkin_protocol::ServerPacket>::read(&mut payload, &version).ok()?;
             Some(ServerboundPacket::SSetCommandMinecart(
                 crate::pumpkin::plugin::java_packets::SSetCommandMinecart {
-                    entity_id: p.entity_id.0.try_into().unwrap(),
+                    entity_id: p.entity_id.0.try_into().ok()?,
                     command: p.command.into(),
-                    track_output: p.track_output.try_into().unwrap(),
+                    track_output: p.track_output.try_into().ok()?,
                 },
             ))
         }
@@ -1610,7 +1610,7 @@ pub fn deserialize_java_serverbound_packet(
             let p = <pumpkin_protocol::java::server::play::SSetHeldItem as pumpkin_protocol::ServerPacket>::read(&mut payload, &version).ok()?;
             Some(ServerboundPacket::SSetHeldItem(
                 crate::pumpkin::plugin::java_packets::SSetHeldItem {
-                    slot: p.slot.try_into().unwrap(),
+                    slot: p.slot.try_into().ok()?,
                 },
             ))
         }
@@ -1625,8 +1625,8 @@ pub fn deserialize_java_serverbound_packet(
                     pool: p.pool.into(),
                     final_state: p.final_state.into(),
                     joint: p.joint.into(),
-                    selection_priority: p.selection_priority.0.try_into().unwrap(),
-                    placement_priority: p.placement_priority.0.try_into().unwrap(),
+                    selection_priority: p.selection_priority.0.try_into().ok()?,
+                    placement_priority: p.placement_priority.0.try_into().ok()?,
                 },
             ))
         }
@@ -1636,21 +1636,21 @@ pub fn deserialize_java_serverbound_packet(
             Some(ServerboundPacket::SSetStructureBlock(
                 crate::pumpkin::plugin::java_packets::SSetStructureBlock {
                     location: (p.location.0.x, p.location.0.y, p.location.0.z),
-                    action: p.action.0.try_into().unwrap(),
-                    mode: p.mode.0.try_into().unwrap(),
+                    action: p.action.0.try_into().ok()?,
+                    mode: p.mode.0.try_into().ok()?,
                     name: p.name.into(),
-                    offset_x: p.offset_x.try_into().unwrap(),
-                    offset_y: p.offset_y.try_into().unwrap(),
-                    offset_z: p.offset_z.try_into().unwrap(),
-                    size_x: p.size_x.try_into().unwrap(),
-                    size_y: p.size_y.try_into().unwrap(),
-                    size_z: p.size_z.try_into().unwrap(),
-                    mirror: p.mirror.0.try_into().unwrap(),
-                    rotation: p.rotation.0.try_into().unwrap(),
+                    offset_x: p.offset_x.cast_unsigned(),
+                    offset_y: p.offset_y.cast_unsigned(),
+                    offset_z: p.offset_z.cast_unsigned(),
+                    size_x: p.size_x.try_into().ok()?,
+                    size_y: p.size_y.try_into().ok()?,
+                    size_z: p.size_z.try_into().ok()?,
+                    mirror: p.mirror.0.try_into().ok()?,
+                    rotation: p.rotation.0.try_into().ok()?,
                     metadata: p.metadata.into(),
-                    integrity: p.integrity.try_into().unwrap(),
+                    integrity: p.integrity.try_into().ok()?,
                     seed: p.seed.0.try_into().unwrap(),
-                    flags: p.flags.try_into().unwrap(),
+                    flags: p.flags.try_into().ok()?,
                 },
             ))
         }
@@ -1659,7 +1659,7 @@ pub fn deserialize_java_serverbound_packet(
             let p = <pumpkin_protocol::java::server::play::SSpectateEntity as pumpkin_protocol::ServerPacket>::read(&mut payload, &version).ok()?;
             Some(ServerboundPacket::SSpectateEntity(
                 crate::pumpkin::plugin::java_packets::SSpectateEntity {
-                    target: p.target.0.try_into().unwrap(),
+                    target: p.target.0.try_into().ok()?,
                 },
             ))
         }
@@ -1681,7 +1681,7 @@ pub fn deserialize_java_serverbound_packet(
             Some(ServerboundPacket::SUpdateSign(
                 crate::pumpkin::plugin::java_packets::SUpdateSign {
                     location: (p.location.0.x, p.location.0.y, p.location.0.z),
-                    is_front_text: p.is_front_text.try_into().unwrap(),
+                    is_front_text: p.is_front_text.try_into().ok()?,
                     line_1: p.line_1.into(),
                     line_2: p.line_2.into(),
                     line_3: p.line_3.into(),
@@ -1694,10 +1694,10 @@ pub fn deserialize_java_serverbound_packet(
             let p = <pumpkin_protocol::java::server::play::SUseItem as pumpkin_protocol::ServerPacket>::read(&mut payload, &version).ok()?;
             Some(ServerboundPacket::SUseItem(
                 crate::pumpkin::plugin::java_packets::SUseItem {
-                    hand: p.hand.0.try_into().unwrap(),
-                    sequence: p.sequence.0.try_into().unwrap(),
-                    yaw: p.yaw.try_into().unwrap(),
-                    pitch: p.pitch.try_into().unwrap(),
+                    hand: p.hand.0.try_into().ok()?,
+                    sequence: p.sequence.0.try_into().ok()?,
+                    yaw: p.yaw.try_into().ok()?,
+                    pitch: p.pitch.try_into().ok()?,
                 },
             ))
         }
@@ -1706,17 +1706,17 @@ pub fn deserialize_java_serverbound_packet(
             let p = <pumpkin_protocol::java::server::play::SUseItemOn as pumpkin_protocol::ServerPacket>::read(&mut payload, &version).ok()?;
             Some(ServerboundPacket::SUseItemOn(
                 crate::pumpkin::plugin::java_packets::SUseItemOn {
-                    hand: p.hand.0.try_into().unwrap(),
+                    hand: p.hand.0.try_into().ok()?,
                     position: (p.position.0.x, p.position.0.y, p.position.0.z),
-                    face: p.face.0.try_into().unwrap(),
+                    face: p.face.0.try_into().ok()?,
                     cursor_pos: (
                         p.cursor_pos.x as _,
                         p.cursor_pos.y as _,
                         p.cursor_pos.z as _,
                     ),
-                    inside_block: p.inside_block.try_into().unwrap(),
-                    is_against_world_border: p.is_against_world_border.try_into().unwrap(),
-                    sequence: p.sequence.0.try_into().unwrap(),
+                    inside_block: p.inside_block.try_into().ok()?,
+                    is_against_world_border: p.is_against_world_border.try_into().ok()?,
+                    sequence: p.sequence.0.try_into().ok()?,
                 },
             ))
         }
@@ -1725,7 +1725,7 @@ pub fn deserialize_java_serverbound_packet(
             let p = <pumpkin_protocol::java::server::status::SStatusPingRequest as pumpkin_protocol::ServerPacket>::read(&mut payload, &version).ok()?;
             Some(ServerboundPacket::StatusSStatusPingRequest(
                 crate::pumpkin::plugin::java_packets::StatusSStatusPingRequest {
-                    payload: p.payload.try_into().unwrap(),
+                    payload: p.payload.try_into().ok()?,
                 },
             ))
         }
@@ -1863,7 +1863,7 @@ impl ToWitClientboundJava for pumpkin_protocol::java::client::play::CSetBlockDes
             crate::pumpkin::plugin::java_packets::CSetBlockDestroyStage {
                 entity_id: self.entity_id.0.try_into().unwrap(),
                 location: (self.location.0.x, self.location.0.y, self.location.0.z),
-                destroy_stage: self.destroy_stage.try_into().unwrap(),
+                destroy_stage: self.destroy_stage.cast_unsigned(),
             },
         )
     }
@@ -2069,7 +2069,7 @@ impl ToWitClientboundJava for pumpkin_protocol::java::client::play::CEntityStatu
     fn to_wit(&self) -> ClientboundPacket {
         ClientboundPacket::CEntityStatus(crate::pumpkin::plugin::java_packets::CEntityStatus {
             entity_id: self.entity_id.try_into().unwrap(),
-            entity_status: self.entity_status.try_into().unwrap(),
+            entity_status: self.entity_status.cast_unsigned(),
         })
     }
 }
@@ -2274,7 +2274,7 @@ impl ToWitClientboundJava for pumpkin_protocol::java::client::play::CPlayerAbili
     fn to_wit(&self) -> ClientboundPacket {
         ClientboundPacket::CPlayerAbilities(
             crate::pumpkin::plugin::java_packets::CPlayerAbilities {
-                flags: self.flags.try_into().unwrap(),
+                flags: self.flags.cast_unsigned(),
                 flying_speed: self.flying_speed.try_into().unwrap(),
                 field_of_view: self.field_of_view.try_into().unwrap(),
             },
@@ -2684,7 +2684,7 @@ impl ToWitClientboundJava for pumpkin_protocol::java::client::play::CUpdateMobEf
                 effect_id: self.effect_id.0.try_into().unwrap(),
                 amplifier: self.amplifier.0.try_into().unwrap(),
                 duration: self.duration.0.try_into().unwrap(),
-                flags: self.flags.try_into().unwrap(),
+                flags: self.flags.cast_unsigned(),
             },
         )
     }
@@ -3073,12 +3073,12 @@ pub fn serialize_bedrock_packet(packet: &BClientboundPacket) -> Option<Bytes> {
                 boss_entity_id: pumpkin_protocol::codec::var_long::VarLong(
                     data.boss_entity_id.try_into().unwrap(),
                 ),
-                event_type: data.event_type.try_into().unwrap(),
+                event_type: data.event_type.try_into().ok()?,
                 title: data.title.clone(),
                 filtered_title: data.filtered_title.clone(),
-                health_percentage: data.health_percentage.try_into().unwrap(),
-                color: data.color.try_into().unwrap(),
-                overlay: data.overlay.try_into().unwrap(),
+                health_percentage: data.health_percentage.try_into().ok()?,
+                color: data.color.try_into().ok()?,
+                overlay: data.overlay.try_into().ok()?,
             };
             let mut buf = Vec::new();
             pumpkin_core::net::bedrock::BedrockClient::write_raw_packet(&p, &mut buf).unwrap();
@@ -3094,8 +3094,8 @@ pub fn serialize_bedrock_packet(packet: &BClientboundPacket) -> Option<Bytes> {
         }
         BClientboundPacket::CContainerOpen(data) => {
             let p = pumpkin_protocol::bedrock::client::CContainerOpen {
-                container_id: data.container_id.try_into().unwrap(),
-                container_type: data.container_type.try_into().unwrap(),
+                container_id: data.container_id.try_into().ok()?,
+                container_type: data.container_type.try_into().ok()?,
                 position: pumpkin_util::math::position::BlockPos::new(
                     data.position.0,
                     data.position.1,
@@ -3112,7 +3112,7 @@ pub fn serialize_bedrock_packet(packet: &BClientboundPacket) -> Option<Bytes> {
         BClientboundPacket::CDisconnect(data) => {
             let p = pumpkin_protocol::bedrock::client::CDisconnect {
                 reason: VarInt(data.reason),
-                skip_message: data.skip_message.try_into().unwrap(),
+                skip_message: data.skip_message.try_into().ok()?,
                 message: data.message.clone(),
                 filtered_message: data.filtered_message.clone(),
             };
@@ -3139,13 +3139,13 @@ pub fn serialize_bedrock_packet(packet: &BClientboundPacket) -> Option<Bytes> {
                 target_runtime_id: pumpkin_protocol::codec::var_ulong::VarULong(
                     data.target_runtime_id.try_into().unwrap(),
                 ),
-                event_id: data.event_id.try_into().unwrap(),
+                event_id: data.event_id.try_into().ok()?,
                 effect_id: VarInt(data.effect_id),
                 effect_amplifier: VarInt(data.effect_amplifier),
-                show_particles: data.show_particles.try_into().unwrap(),
+                show_particles: data.show_particles.try_into().ok()?,
                 effect_duration_ticks: VarInt(data.effect_duration_ticks),
                 tick: pumpkin_protocol::codec::var_ulong::VarULong(data.tick.try_into().unwrap()),
-                ambient: data.ambient.try_into().unwrap(),
+                ambient: data.ambient.try_into().ok()?,
             };
             let mut buf = Vec::new();
             pumpkin_core::net::bedrock::BedrockClient::write_raw_packet(&p, &mut buf).unwrap();
@@ -3167,15 +3167,15 @@ pub fn serialize_bedrock_packet(packet: &BClientboundPacket) -> Option<Bytes> {
                 actor_runtime_id: pumpkin_protocol::codec::var_ulong::VarULong(
                     data.actor_runtime_id.try_into().unwrap(),
                 ),
-                header: data.header.try_into().unwrap(),
+                header: data.header.try_into().ok()?,
                 position: pumpkin_util::math::vector3::Vector3::new(
                     data.position.0 as _,
                     data.position.1 as _,
                     data.position.2 as _,
                 ),
-                rotation_x: data.rotation_x.try_into().unwrap(),
-                rotation_y: data.rotation_y.try_into().unwrap(),
-                rotation_y_head: data.rotation_y_head.try_into().unwrap(),
+                rotation_x: data.rotation_x.try_into().ok()?,
+                rotation_y: data.rotation_y.try_into().ok()?,
+                rotation_y_head: data.rotation_y_head.try_into().ok()?,
             };
             let mut buf = Vec::new();
             pumpkin_core::net::bedrock::BedrockClient::write_raw_packet(&p, &mut buf).unwrap();
@@ -3186,13 +3186,13 @@ pub fn serialize_bedrock_packet(packet: &BClientboundPacket) -> Option<Bytes> {
                 entity_runtime_id: pumpkin_protocol::codec::var_ulong::VarULong(
                     data.entity_runtime_id.try_into().unwrap(),
                 ),
-                flags: data.flags.try_into().unwrap(),
-                x: data.x.try_into().unwrap(),
-                y: data.y.try_into().unwrap(),
-                z: data.z.try_into().unwrap(),
-                pitch: data.pitch.try_into().unwrap(),
-                yaw: data.yaw.try_into().unwrap(),
-                head_yaw: data.head_yaw.try_into().unwrap(),
+                flags: data.flags.try_into().ok()?,
+                x: data.x.try_into().ok()?,
+                y: data.y.try_into().ok()?,
+                z: data.z.try_into().ok()?,
+                pitch: data.pitch.try_into().ok()?,
+                yaw: data.yaw.try_into().ok()?,
+                head_yaw: data.head_yaw.try_into().ok()?,
                 tick: pumpkin_protocol::codec::var_ulong::VarULong(data.tick.try_into().unwrap()),
             };
             let mut buf = Vec::new();
@@ -3209,16 +3209,16 @@ pub fn serialize_bedrock_packet(packet: &BClientboundPacket) -> Option<Bytes> {
                     data.position.1 as _,
                     data.position.2 as _,
                 ),
-                pitch: data.pitch.try_into().unwrap(),
-                yaw: data.yaw.try_into().unwrap(),
-                head_yaw: data.head_yaw.try_into().unwrap(),
-                mode: data.mode.try_into().unwrap(),
-                on_ground: data.on_ground.try_into().unwrap(),
+                pitch: data.pitch.try_into().ok()?,
+                yaw: data.yaw.try_into().ok()?,
+                head_yaw: data.head_yaw.try_into().ok()?,
+                mode: data.mode.try_into().ok()?,
+                on_ground: data.on_ground.try_into().ok()?,
                 riding_runtime_id: pumpkin_protocol::codec::var_ulong::VarULong(
                     data.riding_runtime_id.try_into().unwrap(),
                 ),
-                teleport_cause: data.teleport_cause.try_into().unwrap(),
-                teleport_source_entity_type: data.teleport_source_entity_type.try_into().unwrap(),
+                teleport_cause: data.teleport_cause.try_into().ok()?,
+                teleport_source_entity_type: data.teleport_source_entity_type.try_into().ok()?,
                 tick: pumpkin_protocol::codec::var_ulong::VarULong(data.tick.try_into().unwrap()),
             };
             let mut buf = Vec::new();
@@ -3227,11 +3227,11 @@ pub fn serialize_bedrock_packet(packet: &BClientboundPacket) -> Option<Bytes> {
         }
         BClientboundPacket::CNetworkSettings(data) => {
             let p = pumpkin_protocol::bedrock::client::CNetworkSettings {
-                compression_threshold: data.compression_threshold.try_into().unwrap(),
-                compression_algorithm: data.compression_algorithm.try_into().unwrap(),
-                client_throttle_enabled: data.client_throttle_enabled.try_into().unwrap(),
-                client_throttle_threshold: data.client_throttle_threshold.try_into().unwrap(),
-                client_throttle_scalar: data.client_throttle_scalar.try_into().unwrap(),
+                compression_threshold: data.compression_threshold.try_into().ok()?,
+                compression_algorithm: data.compression_algorithm.try_into().ok()?,
+                client_throttle_enabled: data.client_throttle_enabled.try_into().ok()?,
+                client_throttle_threshold: data.client_throttle_threshold.try_into().ok()?,
+                client_throttle_scalar: data.client_throttle_scalar.try_into().ok()?,
             };
             let mut buf = Vec::new();
             pumpkin_core::net::bedrock::BedrockClient::write_raw_packet(&p, &mut buf).unwrap();
@@ -3259,8 +3259,8 @@ pub fn serialize_bedrock_packet(packet: &BClientboundPacket) -> Option<Bytes> {
                 selected_slot: pumpkin_protocol::codec::var_uint::VarUInt(
                     data.selected_slot.try_into().unwrap(),
                 ),
-                container_id: data.container_id.try_into().unwrap(),
-                should_select_slot: data.should_select_slot.try_into().unwrap(),
+                container_id: data.container_id.try_into().ok()?,
+                should_select_slot: data.should_select_slot.try_into().ok()?,
             };
             let mut buf = Vec::new();
             pumpkin_core::net::bedrock::BedrockClient::write_raw_packet(&p, &mut buf).unwrap();
@@ -3365,8 +3365,8 @@ pub fn serialize_bedrock_packet(packet: &BClientboundPacket) -> Option<Bytes> {
         BClientboundPacket::CTransfer(data) => {
             let p = pumpkin_protocol::bedrock::client::CTransfer {
                 server_address: data.server_address.clone(),
-                server_port: data.server_port.try_into().unwrap(),
-                reload_world: data.reload_world.try_into().unwrap(),
+                server_port: data.server_port.try_into().ok()?,
+                reload_world: data.reload_world.try_into().ok()?,
             };
             let mut buf = Vec::new();
             pumpkin_core::net::bedrock::BedrockClient::write_raw_packet(&p, &mut buf).unwrap();
@@ -3404,33 +3404,33 @@ pub fn deserialize_bedrock_serverbound_packet(
             let p = <pumpkin_protocol::bedrock::server::SBlockPickRequest as pumpkin_protocol::BServerPacket>::read(&mut Cursor::new(payload)).ok()?;
             Some(BServerboundPacket::SBlockPickRequest(crate::pumpkin::plugin::bedrock_packets::SBlockPickRequest {
                 position: (p.position.0.x, p.position.0.y, p.position.0.z),
-                with_data: p.with_data.try_into().unwrap(),
-                max_slots: p.max_slots.try_into().unwrap(),
+                with_data: p.with_data.try_into().ok()?,
+                max_slots: p.max_slots.try_into().ok()?,
             }))
         }
         id if id == <pumpkin_protocol::bedrock::server::SClientCacheStatus as pumpkin_protocol::Packet>::PACKET_ID as i32 => {
             use pumpkin_protocol::BServerPacket;
             let p = <pumpkin_protocol::bedrock::server::SClientCacheStatus as pumpkin_protocol::BServerPacket>::read(&mut Cursor::new(payload)).ok()?;
             Some(BServerboundPacket::SClientCacheStatus(crate::pumpkin::plugin::bedrock_packets::SClientCacheStatus {
-                is_cache_supported: p.is_cache_supported.try_into().unwrap(),
+                is_cache_supported: p.is_cache_supported.try_into().ok()?,
             }))
         }
         id if id == <pumpkin_protocol::bedrock::server::SContainerClose as pumpkin_protocol::Packet>::PACKET_ID as i32 => {
             use pumpkin_protocol::BServerPacket;
             let p = <pumpkin_protocol::bedrock::server::SContainerClose as pumpkin_protocol::BServerPacket>::read(&mut Cursor::new(payload)).ok()?;
             Some(BServerboundPacket::SContainerClose(crate::pumpkin::plugin::bedrock_packets::SContainerClose {
-                container_id: p.container_id.try_into().unwrap(),
-                container_type: p.container_type.try_into().unwrap(),
-                server_initiated_close: p.server_initiated_close.try_into().unwrap(),
+                container_id: p.container_id.try_into().ok()?,
+                container_type: p.container_type.try_into().ok()?,
+                server_initiated_close: p.server_initiated_close.try_into().ok()?,
             }))
         }
         id if id == <pumpkin_protocol::bedrock::server::SPacketViolationWarning as pumpkin_protocol::Packet>::PACKET_ID as i32 => {
             use pumpkin_protocol::BServerPacket;
             let p = <pumpkin_protocol::bedrock::server::SPacketViolationWarning as pumpkin_protocol::BServerPacket>::read(&mut Cursor::new(payload)).ok()?;
             Some(BServerboundPacket::SPacketViolationWarning(crate::pumpkin::plugin::bedrock_packets::SPacketViolationWarning {
-                violation_type: p.violation_type.0.try_into().unwrap(),
-                violation_severity: p.violation_severity.0.try_into().unwrap(),
-                violation_packet_id: p.violation_packet_id.0.try_into().unwrap(),
+                violation_type: p.violation_type.0.try_into().ok()?,
+                violation_severity: p.violation_severity.0.try_into().ok()?,
+                violation_packet_id: p.violation_packet_id.0.try_into().ok()?,
                 violation_context: p.violation_context.into(),
             }))
         }
@@ -3439,23 +3439,23 @@ pub fn deserialize_bedrock_serverbound_packet(
             let p = <pumpkin_protocol::bedrock::server::SPlayerHotbar as pumpkin_protocol::BServerPacket>::read(&mut Cursor::new(payload)).ok()?;
             Some(BServerboundPacket::SPlayerHotbar(crate::pumpkin::plugin::bedrock_packets::SPlayerHotbar {
                 selected_slot: p.selected_slot.0.try_into().unwrap(),
-                container_id: p.container_id.try_into().unwrap(),
-                should_select_slot: p.should_select_slot.try_into().unwrap(),
+                container_id: p.container_id.try_into().ok()?,
+                should_select_slot: p.should_select_slot.try_into().ok()?,
             }))
         }
         id if id == <pumpkin_protocol::bedrock::server::SRequestChunkRadius as pumpkin_protocol::Packet>::PACKET_ID as i32 => {
             use pumpkin_protocol::BServerPacket;
             let p = <pumpkin_protocol::bedrock::server::SRequestChunkRadius as pumpkin_protocol::BServerPacket>::read(&mut Cursor::new(payload)).ok()?;
             Some(BServerboundPacket::SRequestChunkRadius(crate::pumpkin::plugin::bedrock_packets::SRequestChunkRadius {
-                chunk_radius: p.chunk_radius.0.try_into().unwrap(),
-                max_chunk_radius: p.max_chunk_radius.try_into().unwrap(),
+                chunk_radius: p.chunk_radius.0.try_into().ok()?,
+                max_chunk_radius: p.max_chunk_radius.try_into().ok()?,
             }))
         }
         id if id == <pumpkin_protocol::bedrock::server::SRequestNetworkSettings as pumpkin_protocol::Packet>::PACKET_ID as i32 => {
             use pumpkin_protocol::BServerPacket;
             let p = <pumpkin_protocol::bedrock::server::SRequestNetworkSettings as pumpkin_protocol::BServerPacket>::read(&mut Cursor::new(payload)).ok()?;
             Some(BServerboundPacket::SRequestNetworkSettings(crate::pumpkin::plugin::bedrock_packets::SRequestNetworkSettings {
-                client_network_version: p.client_network_version.try_into().unwrap(),
+                client_network_version: p.client_network_version.try_into().ok()?,
             }))
         }
         id if id == <pumpkin_protocol::bedrock::server::SSetLocalPlayerAsInitialized as pumpkin_protocol::Packet>::PACKET_ID as i32 => {
@@ -3469,11 +3469,11 @@ pub fn deserialize_bedrock_serverbound_packet(
             use pumpkin_protocol::BServerPacket;
             let p = <pumpkin_protocol::bedrock::server::SSetPlayerInventoryOptions as pumpkin_protocol::BServerPacket>::read(&mut Cursor::new(payload)).ok()?;
             Some(BServerboundPacket::SSetPlayerInventoryOptions(crate::pumpkin::plugin::bedrock_packets::SSetPlayerInventoryOptions {
-                left_inventory_tab: p.left_inventory_tab.0.try_into().unwrap(),
-                right_inventory_tab: p.right_inventory_tab.0.try_into().unwrap(),
-                filtering: p.filtering.try_into().unwrap(),
-                layout_inv: p.layout_inv.0.try_into().unwrap(),
-                layout_craft: p.layout_craft.0.try_into().unwrap(),
+                left_inventory_tab: p.left_inventory_tab.0.try_into().ok()?,
+                right_inventory_tab: p.right_inventory_tab.0.try_into().ok()?,
+                filtering: p.filtering.try_into().ok()?,
+                layout_inv: p.layout_inv.0.try_into().ok()?,
+                layout_craft: p.layout_craft.0.try_into().ok()?,
             }))
         }
         _ => None,

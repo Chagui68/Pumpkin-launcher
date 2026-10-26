@@ -416,3 +416,22 @@ pub async fn init_plugin(
 
     Ok((plugin, store, metadata))
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::generated_packets::serialize_java_packet;
+    use crate::pumpkin::plugin::java_packets::{CSetBlockDestroyStage, ClientboundPacket};
+    use pumpkin_data::packet::CURRENT_MC_VERSION;
+
+    #[test]
+    fn destroy_stage_255_is_sent_as_minus_one() {
+        let packet = ClientboundPacket::CSetBlockDestroyStage(CSetBlockDestroyStage {
+            entity_id: 1,
+            location: (0, 64, 0),
+            destroy_stage: 255,
+        });
+        let bytes = serialize_java_packet(&packet, CURRENT_MC_VERSION)
+            .expect("the packet should serialize");
+        assert_eq!(bytes.last(), Some(&0xFF));
+    }
+}

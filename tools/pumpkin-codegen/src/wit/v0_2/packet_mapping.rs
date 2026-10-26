@@ -508,18 +508,31 @@ fn convert_value(
                         format!("VarInt({})", src)
                     }
                 } else {
+                    // WIT has no s8, so an `i8` field travels as its `u8` bits (255 is
+                    // vanilla's -1). A value from a plugin that does not fit drops the packet.
+                    let conversion = if type_ident == "i8" {
+                        "cast_signed()"
+                    } else {
+                        "try_into().ok()?"
+                    };
                     if is_ref {
                         prep.push_str(&format!(
-                            "{}let val_{} = {}.try_into().unwrap();\n",
-                            prep_prefix, tmp, src
+                            "{}let val_{} = {}.{};\n",
+                            prep_prefix, tmp, src, conversion
                         ));
                         format!("&val_{}", tmp)
                     } else {
-                        format!("{}.try_into().unwrap()", src)
+                        format!("{}.{}", src, conversion)
                     }
                 }
             }
             MappingMode::Deserialize | MappingMode::ToWit => {
+                // Serverbound values come from the client: one that does not fit drops the packet.
+                let unwrap = if mode == MappingMode::Deserialize {
+                    "ok()?"
+                } else {
+                    "unwrap()"
+                };
                 if is_slice {
                     if type_ident == "VarInt" {
                         format!("{}.iter().map(|v| v.0 as _).collect()", src)
@@ -527,9 +540,11 @@ fn convert_value(
                         format!("{}.iter().map(|v| *v as _).collect()", src)
                     }
                 } else if type_ident == "VarInt" {
-                    format!("{}.0.try_into().unwrap()", src)
+                    format!("{}.0.try_into().{}", src, unwrap)
+                } else if type_ident == "i8" {
+                    format!("{}.cast_unsigned()", src)
                 } else {
-                    format!("{}.try_into().unwrap()", src)
+                    format!("{}.try_into().{}", src, unwrap)
                 }
             }
             MappingMode::Downcast => String::new(),
