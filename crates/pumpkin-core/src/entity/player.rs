@@ -1204,6 +1204,12 @@ impl Player {
 
     /// Removes the [`Player`] out of the current [`World`].
     pub async fn remove(self: &Arc<Self>) {
+        // Vanilla `Player.remove`: the inventory menu gives up the cursor stack and the 2x2
+        // crafting grid first, then an open container is closed as well.
+        self.player_screen_handler
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .on_closed(self.as_ref());
         if !self
             .current_screen_handler
             .lock()
@@ -7817,6 +7823,10 @@ impl InventoryPlayer for Player {
 
     fn drop_item(&self, item: ItemStack, _retain_ownership: bool) {
         self.drop_item(item);
+    }
+
+    fn has_disconnected(&self) -> bool {
+        self.client.closed()
     }
 
     fn has_infinite_materials(&self) -> bool {

@@ -3367,6 +3367,7 @@ dependencies = [
  "pumpkin-core",
  "pumpkin-data",
  "pumpkin-gametest",
+ "pumpkin-inventory",
  "pumpkin-protocol",
  "pumpkin-util",
  "rayon",

@@ -141,6 +141,11 @@ pub trait InventoryPlayer: Send + Sync {
         false
     }
 
+    /// Whether the player left the server (vanilla `ServerPlayer.hasDisconnected`).
+    fn has_disconnected(&self) -> bool {
+        false
+    }
+
     /// Gets the player's experience level.
     fn experience_level(&self) -> i32;
 
@@ -230,8 +235,13 @@ pub trait InventoryPlayer: Send + Sync {
 /// Tries to insert the stack into the player's inventory first,
 /// and drops it in the world if there's no room.
 pub fn offer_or_drop_stack(player: &dyn InventoryPlayer, stack: ItemStack) {
-    // TODO: Super weird disconnect logic in vanilla, investigate this later
-    player.get_inventory().offer_or_drop_stack(stack, player);
+    // Vanilla `AbstractContainerMenu.dropOrPlaceInInventory`: a player who left cannot take
+    // the stack back, so it is dropped where they stood.
+    if player.has_disconnected() {
+        player.drop_item(stack, false);
+    } else {
+        player.get_inventory().offer_or_drop_stack(stack, player);
+    }
 }
 
 /// The main trait for container screen handlers.
