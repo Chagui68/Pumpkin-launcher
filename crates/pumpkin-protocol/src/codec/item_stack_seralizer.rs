@@ -850,6 +850,25 @@ impl ItemStackTemplateSerializer<'_> {
     pub fn write(&self, write: &mut impl NetworkWriteExt) -> Result<(), WritingError> {
         self.write_with_version(write, &JavaMinecraftVersion::V_26_3)
     }
+
+    pub fn read_with_version(
+        read: &mut impl NetworkReadExt,
+        version: &JavaMinecraftVersion,
+    ) -> Result<ItemStackTemplateSerializer<'static>, ReadingError> {
+        let serializer = ItemStackSerializer::read_template_with_version(read, version)?;
+        Ok(ItemStackTemplateSerializer(serializer.0))
+    }
+
+    pub fn read(
+        read: &mut impl NetworkReadExt,
+    ) -> Result<ItemStackTemplateSerializer<'static>, ReadingError> {
+        Self::read_with_version(read, &JavaMinecraftVersion::V_26_3)
+    }
+
+    #[must_use]
+    pub fn to_stack(self) -> ItemStack {
+        self.0.into_owned()
+    }
 }
 
 impl From<ItemStack> for ItemStackTemplateSerializer<'_> {
@@ -1343,5 +1362,12 @@ mod tests {
             .unwrap()
             .to_stack();
         assert_eq!(stack.patch.len(), 1);
+    }
+
+    #[test]
+    fn item_counts_outside_a_byte_are_rejected() {
+        // Item count 256 as a VarInt, then the arrow's item id and an empty patch.
+        let encoded = [0x80, 0x02, 0xF1, 0x07, 0, 0];
+        assert!(ItemStackSerializer::read(&mut encoded.as_slice()).is_err());
     }
 }
