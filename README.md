@@ -114,6 +114,8 @@ See our [Quick Start](https://docs.pumpkinmc.org/#quick-start) guide to get Pump
 - **Wasm plugins can no longer crash the server through a packet field.** A `destroy-stage` of 255 is sent as vanilla's -1 (it clears the crack) instead of panicking, other plugin values that do not fit drop the packet, and `PacketReceivedEvent` decodes Java packets as play packets only, so a play packet is no longer read as a configuration packet with the same id.
 - **A plugin's per-player scoreboard no longer disconnects a joining player.** Changes made before the join sent the full scoreboard are stored and go out with it, instead of reaching the client twice.
 - **Hitting the ender dragon or an entity that just died no longer kicks the player.** Attacks resolve the dragon's parts like vanilla `ServerLevel.getEntityOrPart`, and the dragon takes a quarter of the damage (plus up to 1) on any part but the head and neck. An attack on an entity the server no longer has, such as a creeper that just exploded, is ignored as in vanilla. Covered by the `bot:attack_unknown_entity_and_dragon_part` tester check.
+- **The first Nether (or End) visit can no longer freeze that dimension's chunk generation.** Outside the overworld the stronghold rings were searched with Rayon from inside a generation worker, which could pick up another generation job that waited on the same search. The search now runs on its own thread and pool.
+- **Campfires and jukeboxes no longer duplicate the held item** (fixed by the integrated upstream change that writes block interaction results back to the hand). Covered by the `bot:block_use_takes_held_item` tester check.
 
 ### Running Bukkit, Spigot and Paper plugins
 
@@ -135,7 +137,7 @@ Local PatchBukkit fixes (not upstream yet):
 
 ### Test status
 
-- 200 game tests and 14 bot checks (`cargo run -p pumpkin-tester`) and 614 `pumpkin-core` unit tests pass.
+- 200 game tests and 15 bot checks (`cargo run -p pumpkin-tester`) and 614 `pumpkin-core` unit tests pass.
 - PatchBukkit conformance plugin: 543 of 547 Bukkit API checks pass.
 - 59 Bukkit plugins and the BSkyBlock addon loaded together (the SlimefunNewHorizons organization releases, BentoBox, LuckPerms, Vault, EssentialsX): 48 enable (46 cleanly, EssentialsX and Odysseia with warnings) and the server starts and stops without crashing. The other 11 fail for their own reasons, such as addons built against classes that Slimefun4-Drake's compatibility layer does not provide, invalid `plugin.yml` files or missing libraries.
 - Not tested with a real client: gameplay of these plugins, and tick time with many entities after the `SharedArcSwap` change.
