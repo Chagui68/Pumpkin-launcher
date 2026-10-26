@@ -131,12 +131,14 @@ impl PotionContents {
         Vec::new()
     }
 
-    /// Apply instant or duration effects to a target living entity.
+    /// Apply instant or duration effects to a target living entity. `instant_source` is the
+    /// entity carrying the effect and its owner, which instant damage is attributed to.
     pub fn apply_effects_to(
         target: &LivingEntity,
         effects: Vec<(&'static StatusEffect, i32, u8, bool, bool, bool)>,
         scale: f32,
         source: PotionApplicationSource,
+        instant_source: Option<(&dyn EntityBase, Option<&dyn EntityBase>)>,
     ) {
         for (effect_type, duration, amplifier, ambient, show_particles, show_icon) in effects {
             // Instant effects should apply immediately
@@ -155,10 +157,25 @@ impl PotionContents {
                 } else if effect_type.id == pumpkin_data::effect::StatusEffect::INSTANT_DAMAGE.id {
                     let amount = 6.0 * (1 << amplifier) as f32 * instant_scale;
 
-                    let _ = target.damage(
+                    // Vanilla `HealOrHarmMobEffect`: `indirectMagic(source, owner)` when the
+                    // effect has a source entity, plain `magic` otherwise.
+                    let (damage_type, source, cause) = instant_source.map_or(
+                        (pumpkin_data::damage::DamageType::MAGIC, None, None),
+                        |(source, owner)| {
+                            (
+                                pumpkin_data::damage::DamageType::INDIRECT_MAGIC,
+                                Some(source),
+                                owner,
+                            )
+                        },
+                    );
+                    let _ = target.damage_with_context(
                         target.get_entity(),
                         amount,
-                        pumpkin_data::damage::DamageType::MAGIC,
+                        damage_type,
+                        None,
+                        source,
+                        cause,
                     );
                 }
 

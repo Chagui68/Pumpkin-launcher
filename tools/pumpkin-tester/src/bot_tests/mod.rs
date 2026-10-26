@@ -5,6 +5,7 @@ mod embedded_stop;
 mod login_and_movement;
 mod loot_tables;
 mod player_actions;
+mod potion_attribution;
 mod sheep_shearing;
 mod status_ping;
 mod world_interaction;
@@ -47,6 +48,8 @@ pub async fn run_bot_tests(
     attack_targets::run_attack_target_tests(server, &mut bot1, summary_lines).await?;
 
     block_use_held_item::run_block_use_held_item_tests(server, &mut bot1, summary_lines).await?;
+
+    potion_attribution::run_potion_attribution_test(server, &mut bot1, summary_lines).await?;
 
     player_actions::run_player_actions_and_disconnect_tests(server, bot1, bot2, summary_lines)
         .await?;
