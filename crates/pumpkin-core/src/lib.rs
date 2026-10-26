@@ -807,9 +807,16 @@ fn setup_stdin_console(server: &Arc<Server>) {
     });
     let server_clone = server.clone();
     server.spawn_task(async move {
-        while !SHOULD_STOP.load(Ordering::Relaxed)
-            && let Some(command) = rx.recv().await
-        {
+        while !SHOULD_STOP.load(Ordering::Relaxed) {
+            // `stop` only cancels the server's token, so waiting on stdin alone would keep
+            // this task, and with it the shutdown, alive until another line arrives.
+            let command = select! {
+                command = rx.recv() => command,
+                () = server_clone.stop_token.cancelled() => None,
+            };
+            let Some(command) = command else {
+                break;
+            };
             let mut event = ServerCommandEvent::new(command.clone());
             server_clone
                 .plugin_manager
