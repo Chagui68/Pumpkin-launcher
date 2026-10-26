@@ -1,0 +1,156 @@
+diff --git a/rust/Cargo.lock b/rust/Cargo.lock
+index bed54e7..3ddeae6 100644
+--- a/rust/Cargo.lock
++++ b/rust/Cargo.lock
+@@ -2787,7 +2787,6 @@ dependencies = [
+ [[package]]
+ name = "pumpkin-api-macros"
+ version = "0.2.1+26.3-26.51"
+-source = "git+https://github.com/Pumpkin-MC/Pumpkin.git?branch=master#224f9f8144ca53a8d0800acb87607d714196e2a6"
+ dependencies = [
+  "proc-macro-error2",
+  "proc-macro2",
+@@ -2798,7 +2797,6 @@ dependencies = [
+ [[package]]
+ name = "pumpkin-auth"
+ version = "0.2.1+26.3-26.51"
+-source = "git+https://github.com/Pumpkin-MC/Pumpkin.git?branch=master#224f9f8144ca53a8d0800acb87607d714196e2a6"
+ dependencies = [
+  "base64 0.23.1",
+  "crypto-bigint",
+@@ -2819,7 +2817,6 @@ dependencies = [
+ [[package]]
+ name = "pumpkin-codecs"
+ version = "0.2.1+26.3-26.51"
+-source = "git+https://github.com/Pumpkin-MC/Pumpkin.git?branch=master#224f9f8144ca53a8d0800acb87607d714196e2a6"
+ dependencies = [
+  "serde_json",
+  "tracing",
+@@ -2828,7 +2825,6 @@ dependencies = [
+ [[package]]
+ name = "pumpkin-command"
+ version = "0.2.1+26.3-26.51"
+-source = "git+https://github.com/Pumpkin-MC/Pumpkin.git?branch=master#224f9f8144ca53a8d0800acb87607d714196e2a6"
+ dependencies = [
+  "pumpkin-codecs",
+  "pumpkin-data",
+@@ -2844,7 +2840,6 @@ dependencies = [
+ [[package]]
+ name = "pumpkin-config"
+ version = "0.2.1+26.3-26.51"
+-source = "git+https://github.com/Pumpkin-MC/Pumpkin.git?branch=master#224f9f8144ca53a8d0800acb87607d714196e2a6"
+ dependencies = [
+  "pumpkin-util",
+  "rand 0.10.3",
+@@ -2857,7 +2852,6 @@ dependencies = [
+ [[package]]
+ name = "pumpkin-core"
+ version = "0.2.1+26.3-26.51"
+-source = "git+https://github.com/Pumpkin-MC/Pumpkin.git?branch=master#224f9f8144ca53a8d0800acb87607d714196e2a6"
+ dependencies = [
+  "aes 0.9.3",
+  "arc-swap",
+@@ -2921,7 +2915,6 @@ dependencies = [
+ [[package]]
+ name = "pumpkin-data"
+ version = "0.2.1+26.3-26.51"
+-source = "git+https://github.com/Pumpkin-MC/Pumpkin.git?branch=master#224f9f8144ca53a8d0800acb87607d714196e2a6"
+ dependencies = [
+  "crc32c",
+  "flate2",
+@@ -2939,7 +2932,6 @@ dependencies = [
+ [[package]]
+ name = "pumpkin-gametest"
+ version = "0.2.1+26.3-26.51"
+-source = "git+https://github.com/Pumpkin-MC/Pumpkin.git?branch=master#224f9f8144ca53a8d0800acb87607d714196e2a6"
+ dependencies = [
+  "async-trait",
+  "pumpkin-data",
+@@ -2955,7 +2947,6 @@ dependencies = [
+ [[package]]
+ name = "pumpkin-inventory"
+ version = "0.2.1+26.3-26.51"
+-source = "git+https://github.com/Pumpkin-MC/Pumpkin.git?branch=master#224f9f8144ca53a8d0800acb87607d714196e2a6"
+ dependencies = [
+  "pumpkin-data",
+  "pumpkin-nbt",
+@@ -2970,7 +2961,6 @@ dependencies = [
+ [[package]]
+ name = "pumpkin-macros"
+ version = "0.2.1+26.3-26.51"
+-source = "git+https://github.com/Pumpkin-MC/Pumpkin.git?branch=master#224f9f8144ca53a8d0800acb87607d714196e2a6"
+ dependencies = [
+  "heck",
+  "proc-macro-error2",
+@@ -2982,7 +2972,6 @@ dependencies = [
+ [[package]]
+ name = "pumpkin-nbt"
+ version = "0.2.1+26.3-26.51"
+-source = "git+https://github.com/Pumpkin-MC/Pumpkin.git?branch=master#224f9f8144ca53a8d0800acb87607d714196e2a6"
+ dependencies = [
+  "bytes",
+  "cesu8",
+@@ -2996,7 +2985,6 @@ dependencies = [
+ [[package]]
+ name = "pumpkin-protocol"
+ version = "0.2.1+26.3-26.51"
+-source = "git+https://github.com/Pumpkin-MC/Pumpkin.git?branch=master#224f9f8144ca53a8d0800acb87607d714196e2a6"
+ dependencies = [
+  "aes 0.9.3",
+  "async-compression",
+@@ -3021,7 +3009,6 @@ dependencies = [
+ [[package]]
+ name = "pumpkin-util"
+ version = "0.2.1+26.3-26.51"
+-source = "git+https://github.com/Pumpkin-MC/Pumpkin.git?branch=master#224f9f8144ca53a8d0800acb87607d714196e2a6"
+ dependencies = [
+  "bytes",
+  "colored",
+@@ -3040,7 +3027,6 @@ dependencies = [
+ [[package]]
+ name = "pumpkin-world"
+ version = "0.2.1+26.3-26.51"
+-source = "git+https://github.com/Pumpkin-MC/Pumpkin.git?branch=master#224f9f8144ca53a8d0800acb87607d714196e2a6"
+ dependencies = [
+  "arc-swap",
+  "bitflags 2.13.2",
+@@ -4110,9 +4096,9 @@ dependencies = [
+ 
+ [[package]]
+ name = "smallvec"
+-version = "1.16.4"
++version = "1.16.3"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "d0d5d4b1981b8bbbb7aed204cae5726d683d5d6ac7e74ec54122ea28f315e7c8"
++checksum = "5b3dc8af474f516a851ff4bd12db780f948b9250ad37211e4eec0bccea54e01b"
+ 
+ [[package]]
+ name = "socket2"
+diff --git a/rust/Cargo.toml b/rust/Cargo.toml
+index 2b48d17..0499cc5 100644
+--- a/rust/Cargo.toml
++++ b/rust/Cargo.toml
+@@ -77,3 +77,23 @@ all = { level = "deny", priority = -1 }
+ multiple_crate_versions = "allow"
+ unnecessary_fallible_conversions = "allow"
+ not_unsafe_ptr_arg_deref = "allow" # Not sure about this one
++
++# Local: build against the exact Pumpkin checkout the server uses
++[patch."https://github.com/Pumpkin-MC/Pumpkin.git"]
++pumpkin-api-macros = { path = "../../Pumpkin-launcher/crates/pumpkin-api-macros" }
++pumpkin-auth = { path = "../../Pumpkin-launcher/crates/pumpkin-auth" }
++pumpkin-codecs = { path = "../../Pumpkin-launcher/crates/pumpkin-codecs" }
++pumpkin-command = { path = "../../Pumpkin-launcher/crates/pumpkin-command" }
++pumpkin-config = { path = "../../Pumpkin-launcher/crates/pumpkin-config" }
++pumpkin-core = { path = "../../Pumpkin-launcher/crates/pumpkin-core" }
++pumpkin-data = { path = "../../Pumpkin-launcher/crates/pumpkin-data" }
++pumpkin-gametest = { path = "../../Pumpkin-launcher/crates/pumpkin-gametest" }
++pumpkin-inventory = { path = "../../Pumpkin-launcher/crates/pumpkin-inventory" }
++pumpkin-macros = { path = "../../Pumpkin-launcher/crates/pumpkin-macros" }
++pumpkin-nbt = { path = "../../Pumpkin-launcher/crates/pumpkin-nbt" }
++pumpkin-protocol = { path = "../../Pumpkin-launcher/crates/pumpkin-protocol" }
++pumpkin-util = { path = "../../Pumpkin-launcher/crates/pumpkin-util" }
++pumpkin-world = { path = "../../Pumpkin-launcher/crates/pumpkin-world" }
++
++[profile.dev.package.patchbukkit]
++debug = "line-tables-only"

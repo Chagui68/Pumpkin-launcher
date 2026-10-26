@@ -1,0 +1,196 @@
+diff --git a/java/patchbukkit/src/main/java/org/patchbukkit/bootstrap/WorldBridge.java b/java/patchbukkit/src/main/java/org/patchbukkit/bootstrap/WorldBridge.java
+index 220aca5..87e237b 100644
+--- a/java/patchbukkit/src/main/java/org/patchbukkit/bootstrap/WorldBridge.java
++++ b/java/patchbukkit/src/main/java/org/patchbukkit/bootstrap/WorldBridge.java
+@@ -511,7 +511,15 @@ public final class WorldBridge {
+                     .build()
+             );
+             if (res != null) {
+-                world.setTime(res.getTime());
++                // CraftWorld.setTime without its TimeSkipEvent: copying Pumpkin's clock is not a plugin skipping time.
++                ServerLevel level = world.getHandle();
++                level.dimensionType().defaultClock().ifPresent(clock -> {
++                    long current = level.getDefaultClockTime();
++                    long margin = Math.floorMod(res.getTime() - current, 24000L);
++                    if (margin != 0) {
++                        level.clockManager().setTotalTicks(clock, current + margin);
++                    }
++                });
+                 world.setStorm(res.getIsStorm());
+                 world.setThundering(res.getIsThundering());
+             }
+diff --git a/java/patchbukkit/src/main/java/org/patchbukkit/loader/BytecodeTransformer.java b/java/patchbukkit/src/main/java/org/patchbukkit/loader/BytecodeTransformer.java
+index f1ae28f..fbf3290 100644
+--- a/java/patchbukkit/src/main/java/org/patchbukkit/loader/BytecodeTransformer.java
++++ b/java/patchbukkit/src/main/java/org/patchbukkit/loader/BytecodeTransformer.java
+@@ -32,6 +32,12 @@ public final class BytecodeTransformer {
+                     return map(unversioned);
+                 }
+ 
++                // Paper 26.x moved TimeSkipEvent.SkipReason to ClockTimeSkipEvent.SkipReason (same constants)
++                // without a Commodore reroute.
++                if ("org/bukkit/event/world/TimeSkipEvent$SkipReason".equals(internalName)) {
++                    return "org/bukkit/event/world/ClockTimeSkipEvent$SkipReason";
++                }
++
+                 return super.map(internalName);
+             }
+ 
+diff --git a/java/patchbukkit/src/main/java/org/patchbukkit/loader/PatchBukkitBootstrap.java b/java/patchbukkit/src/main/java/org/patchbukkit/loader/PatchBukkitBootstrap.java
+index cdaabd0..bd8c9be 100644
+--- a/java/patchbukkit/src/main/java/org/patchbukkit/loader/PatchBukkitBootstrap.java
++++ b/java/patchbukkit/src/main/java/org/patchbukkit/loader/PatchBukkitBootstrap.java
+@@ -44,7 +44,7 @@ public class PatchBukkitBootstrap {
+             }
+ 
+             List<File> jarFiles = new ArrayList<>();
+-            findJarsRecursive(pluginsDir, jarFiles);
++            findPluginJars(pluginsDir, jarFiles);
+ 
+             if (jarFiles.isEmpty()) {
+                 LOGGER.info("[PatchBukkit] No plugin JAR files found in: " + pluginsDirPath);
+@@ -174,19 +174,14 @@ public class PatchBukkitBootstrap {
+         }
+     }
+ 
+-    private static void findJarsRecursive(File dir, List<File> result) {
+-        if (dir == null || !dir.isDirectory()) return;
+-        if (dir.getName().equals("patchbukkit-libs")) return;
+-
++    // Only the top level, like Paper: plugin data folders hold jars that are not plugins
++    // (BentoBox addons, downloaded libraries) and must not be loaded as such.
++    private static void findPluginJars(File dir, List<File> result) {
+         File[] files = dir.listFiles();
+         if (files == null) return;
+ 
+         for (File file : files) {
+-            if (file.isDirectory()) {
+-                if (!file.getName().equals("patchbukkit-libs")) {
+-                    findJarsRecursive(file, result);
+-                }
+-            } else if (file.getName().endsWith(".jar")) {
++            if (file.isFile() && file.getName().endsWith(".jar")) {
+                 result.add(file);
+             }
+         }
+diff --git a/java/patchbukkit/src/main/java/org/patchbukkit/loader/PatchBukkitPluginClassLoader.java b/java/patchbukkit/src/main/java/org/patchbukkit/loader/PatchBukkitPluginClassLoader.java
+index 5231589..bcc8731 100644
+--- a/java/patchbukkit/src/main/java/org/patchbukkit/loader/PatchBukkitPluginClassLoader.java
++++ b/java/patchbukkit/src/main/java/org/patchbukkit/loader/PatchBukkitPluginClassLoader.java
+@@ -31,6 +31,8 @@ public class PatchBukkitPluginClassLoader
+     private final PluginDescriptionFile description;
+     private final File dataFolder;
+     private final File file;
++    // Commodore only understands "major.minor[.patch]"; Paper refuses to load plugins with anything else.
++    private final boolean legacyRewrite;
+     private JavaPlugin plugin;
+ 
+     static {
+@@ -53,6 +55,7 @@ public class PatchBukkitPluginClassLoader
+         super(buildUrls(file, extraUrls), parent);
+         this.file = file;
+         this.description = loadDescription(file);
++        this.legacyRewrite = isParsableApiVersion(description.getAPIVersion());
+         this.dataFolder = new File(file.getParentFile(), description.getName());
+         ALL_LOADERS.add(this);
+ 
+@@ -282,8 +285,8 @@ public class PatchBukkitPluginClassLoader
+     }
+ 
+     /**
+-     * Child-first class loading: try to load from plugin JAR before delegating to parent.
+-     * This is critical for plugin classes to be loaded by this classloader.
++     * Server-first class loading like Paper, then this plugin's jar, then the other plugins.
++     * Plugin classes are never on the server classpath, so they are still defined here.
+      */
+     @Override
+     protected Class<?> loadClass(String name, boolean resolve)
+@@ -314,22 +317,28 @@ public class PatchBukkitPluginClassLoader
+                     !name.startsWith("net.kyori.") &&
+                     !name.startsWith("org.patchbukkit.")
+                 ) {
++                    // Like Paper's plugin classloader: the server classpath (and the libraries it bundles)
++                    // first, so a plugin's unrelocated copy of a server library can't diverge from the
++                    // one the server already uses (JDBC drivers, ServiceLoader providers). Then the
++                    // plugin's own jar, then the other plugins.
+                     try {
+-                        // Try to find in plugin JAR / libraries first
+-                        c = findClass(name);
+-                    } catch (ClassNotFoundException e) {
+-                        // Not in local JAR, check other plugin classloaders in global pool
+-                        for (PatchBukkitPluginClassLoader other : ALL_LOADERS) {
+-                            if (other != this) {
+-                                try {
+-                                    c = other.findLoadedClass(name);
+-                                    if (c == null) {
+-                                        c = other.findClass(name);
+-                                    }
+-                                    if (c != null) {
+-                                        break;
+-                                    }
+-                                } catch (ClassNotFoundException ignored) {}
++                        c = getParent().loadClass(name);
++                    } catch (ClassNotFoundException notOnServer) {
++                        try {
++                            c = findClass(name);
++                        } catch (ClassNotFoundException e) {
++                            for (PatchBukkitPluginClassLoader other : ALL_LOADERS) {
++                                if (other != this) {
++                                    try {
++                                        c = other.findLoadedClass(name);
++                                        if (c == null) {
++                                            c = other.findClass(name);
++                                        }
++                                        if (c != null) {
++                                            break;
++                                        }
++                                    } catch (ClassNotFoundException ignored) {}
++                                }
+                             }
+                         }
+                     }
+@@ -377,10 +386,25 @@ public class PatchBukkitPluginClassLoader
+         String path = name.replace('.', '/').concat(".class");
+         URL resource = findResource(path);
+         if (resource != null) {
+-            try (InputStream is = resource.openStream()) {
++            java.net.URLConnection connection;
++            try {
++                connection = resource.openConnection();
++            } catch (IOException e) {
++                return super.findClass(name);
++            }
++            // Point the class at the jar it came from, as URLClassLoader would, so plugins can find
++            // their own jar through getProtectionDomain().getCodeSource().getLocation().
++            URL location = connection instanceof java.net.JarURLConnection jar ? jar.getJarFileURL() : resource;
++            java.security.CodeSource codeSource = new java.security.CodeSource(location, (java.security.CodeSigner[]) null);
++            try (InputStream is = connection.getInputStream()) {
+                 byte[] raw = is.readAllBytes();
++                // Paper's legacy support (Commodore): field renames, legacy materials and reroutes
++                // chosen by the plugin's api-version, as Paper's own plugin classloader applies it.
++                if (legacyRewrite && org.bukkit.Bukkit.getServer() != null) {
++                    raw = org.bukkit.Bukkit.getUnsafe().processClass(description, path, raw);
++                }
+                 byte[] transformed = BytecodeTransformer.transform(raw);
+-                return defineClass(name, transformed, 0, transformed.length, (java.security.CodeSource) null);
++                return defineClass(name, transformed, 0, transformed.length, codeSource);
+             } catch (Throwable t) {
+                 LOGGER.log(Level.FINE, "[PatchBukkit] Failed to define transformed class " + name, t);
+             }
+@@ -388,6 +412,16 @@ public class PatchBukkitPluginClassLoader
+         return super.findClass(name);
+     }
+ 
++    private static boolean isParsableApiVersion(String apiVersion) {
++        try {
++            org.bukkit.craftbukkit.util.ApiVersion.getOrCreateVersion(apiVersion);
++            return true;
++        } catch (IllegalArgumentException e) {
++            LOGGER.warning("[PatchBukkit] Invalid api-version '" + apiVersion + "', skipping legacy bytecode support");
++            return false;
++        }
++    }
++
+     private static String remapLegacyClass(String name) {
+         if (name == null) return null;
+ 
