@@ -419,9 +419,13 @@ pub async fn init_plugin(
 
 #[cfg(test)]
 mod tests {
-    use crate::generated_packets::serialize_java_packet;
-    use crate::pumpkin::plugin::java_packets::{CSetBlockDestroyStage, ClientboundPacket};
+    use crate::generated_packets::{deserialize_java_serverbound_packet, serialize_java_packet};
+    use crate::pumpkin::plugin::java_packets::{
+        CSetBlockDestroyStage, ClientboundPacket, ServerboundPacket,
+    };
     use pumpkin_data::packet::CURRENT_MC_VERSION;
+    use pumpkin_protocol::java::server::play::SChatAck;
+    use pumpkin_protocol::packet::MultiVersionJavaPacket;
 
     #[test]
     fn destroy_stage_255_is_sent_as_minus_one() {
@@ -433,5 +437,13 @@ mod tests {
         let bytes = serialize_java_packet(&packet, CURRENT_MC_VERSION)
             .expect("the packet should serialize");
         assert_eq!(bytes.last(), Some(&0xFF));
+    }
+
+    #[test]
+    fn play_packet_is_not_decoded_as_a_configuration_packet() {
+        // Id 6 is also `resource_pack` in the configuration state.
+        let id = SChatAck::to_id(CURRENT_MC_VERSION);
+        let packet = deserialize_java_serverbound_packet(id, &[3], CURRENT_MC_VERSION);
+        assert!(matches!(packet, Some(ServerboundPacket::SChatAck(_))));
     }
 }

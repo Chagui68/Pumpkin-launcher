@@ -25,7 +25,6 @@ pub fn build_java_mapping() -> String {
     output.push_str("    match packet {\n");
 
     let client_states = &["config", "login", "play", "status"];
-    let server_states = &["config", "handshake", "login", "play", "status"];
 
     for state in client_states {
         process_packets(
@@ -48,18 +47,17 @@ pub fn build_java_mapping() -> String {
     output.push_str("pub fn deserialize_java_serverbound_packet(id: i32, mut payload: &[u8], version: JavaMinecraftVersion) -> Option<ServerboundPacket> {\n");
     output.push_str("    match id {\n");
 
-    for state in server_states {
-        process_packets(
-            &format!("../../crates/pumpkin-protocol/src/java/server/{}", state),
-            state,
-            &mut output,
-            "java_packet",
-            "ServerboundPacket",
-            &format!("pumpkin_protocol::java::server::{}", state),
-            false,
-            MappingMode::Deserialize,
-        );
-    }
+    // `PacketReceivedEvent` only fires for play packets, and the other states reuse their ids.
+    process_packets(
+        "../../crates/pumpkin-protocol/src/java/server/play",
+        "play",
+        &mut output,
+        "java_packet",
+        "ServerboundPacket",
+        "pumpkin_protocol::java::server::play",
+        false,
+        MappingMode::Deserialize,
+    );
 
     output.push_str("        _ => None,\n");
     output.push_str("    }\n");

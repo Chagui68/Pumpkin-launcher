@@ -1103,65 +1103,6 @@ pub fn deserialize_java_serverbound_packet(
     version: JavaMinecraftVersion,
 ) -> Option<ServerboundPacket> {
     match id {
-        id if id
-            == pumpkin_protocol::java::server::config::SClientInformationConfig::to_id(version) =>
-        {
-            use pumpkin_protocol::ServerPacket;
-            let p = <pumpkin_protocol::java::server::config::SClientInformationConfig as pumpkin_protocol::ServerPacket>::read(&mut payload, &version).ok()?;
-            Some(ServerboundPacket::ConfigSClientInformationConfig(
-                crate::pumpkin::plugin::java_packets::ConfigSClientInformationConfig {
-                    locale: p.locale.into(),
-                    view_distance: p.view_distance.cast_unsigned(),
-                    chat_mode: p.chat_mode.0.try_into().ok()?,
-                    chat_colors: p.chat_colors.try_into().ok()?,
-                    skin_parts: p.skin_parts.try_into().ok()?,
-                    main_hand: p.main_hand.0.try_into().ok()?,
-                    text_filtering: p.text_filtering.try_into().ok()?,
-                    server_listing: p.server_listing.try_into().ok()?,
-                },
-            ))
-        }
-        id if id == pumpkin_protocol::java::server::config::SKeepAlive::to_id(version) => {
-            use pumpkin_protocol::ServerPacket;
-            let p = <pumpkin_protocol::java::server::config::SKeepAlive as pumpkin_protocol::ServerPacket>::read(&mut payload, &version).ok()?;
-            Some(ServerboundPacket::ConfigSKeepAlive(
-                crate::pumpkin::plugin::java_packets::ConfigSKeepAlive {
-                    keep_alive_id: p.keep_alive_id.try_into().ok()?,
-                },
-            ))
-        }
-        id if id == pumpkin_protocol::java::server::config::SPluginMessage::to_id(version) => {
-            use pumpkin_protocol::ServerPacket;
-            let p = <pumpkin_protocol::java::server::config::SPluginMessage as pumpkin_protocol::ServerPacket>::read(&mut payload, &version).ok()?;
-            Some(ServerboundPacket::ConfigSPluginMessage(
-                crate::pumpkin::plugin::java_packets::ConfigSPluginMessage {
-                    channel: p.channel.into(),
-                    data: p.data.iter().map(|v| *v as _).collect(),
-                },
-            ))
-        }
-        id if id == pumpkin_protocol::java::server::config::SConfigPong::to_id(version) => {
-            use pumpkin_protocol::ServerPacket;
-            let p = <pumpkin_protocol::java::server::config::SConfigPong as pumpkin_protocol::ServerPacket>::read(&mut payload, &version).ok()?;
-            Some(ServerboundPacket::ConfigSConfigPong(
-                crate::pumpkin::plugin::java_packets::ConfigSConfigPong {
-                    id: p.id.try_into().ok()?,
-                },
-            ))
-        }
-        id if id == pumpkin_protocol::java::server::config::SConfigResourcePack::to_id(version) => {
-            use pumpkin_protocol::ServerPacket;
-            let p = <pumpkin_protocol::java::server::config::SConfigResourcePack as pumpkin_protocol::ServerPacket>::read(&mut payload, &version).ok()?;
-            Some(ServerboundPacket::ConfigSConfigResourcePack(
-                crate::pumpkin::plugin::java_packets::ConfigSConfigResourcePack {
-                    uuid: crate::pumpkin::plugin::uuid::Uuid {
-                        high: p.uuid.as_u64_pair().1,
-                        low: p.uuid.as_u64_pair().0,
-                    },
-                    result: p.result.0.try_into().ok()?,
-                },
-            ))
-        }
         id if id == pumpkin_protocol::java::server::play::SAttack::to_id(version) => {
             use pumpkin_protocol::ServerPacket;
             let p = <pumpkin_protocol::java::server::play::SAttack as pumpkin_protocol::ServerPacket>::read(&mut payload, &version).ok()?;
@@ -1717,15 +1658,6 @@ pub fn deserialize_java_serverbound_packet(
                     inside_block: p.inside_block.try_into().ok()?,
                     is_against_world_border: p.is_against_world_border.try_into().ok()?,
                     sequence: p.sequence.0.try_into().ok()?,
-                },
-            ))
-        }
-        id if id == pumpkin_protocol::java::server::status::SStatusPingRequest::to_id(version) => {
-            use pumpkin_protocol::ServerPacket;
-            let p = <pumpkin_protocol::java::server::status::SStatusPingRequest as pumpkin_protocol::ServerPacket>::read(&mut payload, &version).ok()?;
-            Some(ServerboundPacket::StatusSStatusPingRequest(
-                crate::pumpkin::plugin::java_packets::StatusSStatusPingRequest {
-                    payload: p.payload.try_into().ok()?,
                 },
             ))
         }
