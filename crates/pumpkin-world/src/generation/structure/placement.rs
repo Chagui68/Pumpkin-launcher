@@ -107,19 +107,8 @@ impl GlobalStructureCache {
             let spawned = std::thread::Builder::new()
                 .name("Stronghold-Rings".to_string())
                 .spawn(move || {
-                    let compute = || Self::calculate_strongholds(seed, placement, &router);
-                    // Global Rayon workers may block on this result, so the search must never
-                    // run on that pool: use a private pool, or this thread alone if none can be built.
                     let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                        rayon::ThreadPoolBuilder::new()
-                            .thread_name(|i| format!("Stronghold-Rings-{i}"))
-                            .build()
-                            .map_or_else(
-                                |_| {
-                                    Self::calculate_strongholds_sequential(seed, placement, &router)
-                                },
-                                |pool| pool.install(compute),
-                            )
+                        Self::calculate_strongholds_private(seed, placement, &router)
                     }));
                     if result.is_err() {
                         tracing::error!("Stronghold ring calculation panicked");
@@ -218,6 +207,47 @@ impl GlobalStructureCache {
             .panic_fuse()
             .map(|task| Self::search_ring(task, multi_noise, preferred_biomes))
             .collect()
+    }
+
+    /// Runs [`Self::calculate_strongholds`] on a private pool, or on this thread alone if none
+    /// can be built. Never on a shared pool: its workers may block waiting for the result.
+    fn calculate_strongholds_private(
+        seed: i64,
+        placement: &ConcentricRingsStructurePlacement,
+        multi_noise: &ProtoMultiNoiseRouter,
+    ) -> Vec<(i32, i32)> {
+        rayon::ThreadPoolBuilder::new()
+            .thread_name(|i| format!("Stronghold-Rings-{i}"))
+            .build()
+            .map_or_else(
+                |_| Self::calculate_strongholds_sequential(seed, placement, multi_noise),
+                |pool| pool.install(|| Self::calculate_strongholds(seed, placement, multi_noise)),
+            )
+    }
+
+    /// Runs [`Self::calculate_strongholds_private`] on a new thread and waits for it. The caller
+    /// may be a generation worker: waiting on Rayon there lets it run another generation job,
+    /// which then re-enters the cell this thread is initialising and deadlocks the pool.
+    fn calculate_strongholds_off_thread(
+        seed: i64,
+        placement: &ConcentricRingsStructurePlacement,
+        multi_noise: &ProtoMultiNoiseRouter,
+    ) -> Vec<(i32, i32)> {
+        std::thread::scope(|scope| {
+            std::thread::Builder::new()
+                .name("Stronghold-Rings".to_string())
+                .spawn_scoped(scope, || {
+                    Self::calculate_strongholds_private(seed, placement, multi_noise)
+                })
+                .map_or_else(
+                    |_| Self::calculate_strongholds_sequential(seed, placement, multi_noise),
+                    |search| {
+                        search
+                            .join()
+                            .unwrap_or_else(|panic| std::panic::resume_unwind(panic))
+                    },
+                )
+        })
     }
 
     /// Same as [`Self::calculate_strongholds`], but on the calling thread only.
@@ -380,9 +410,9 @@ impl GlobalStructureCache {
                     let random_config = crate::GlobalRandomConfig::new(seed as u64, false);
                     let base = pumpkin_data::noise_router::BaseNoiseRouters::from_dimension(&pumpkin_data::dimension::Dimension::OVERWORLD);
                     let base_router = crate::generation::noise::router::proto_noise_router::ProtoNoiseRouters::generate(base, &random_config);
-                    Self::calculate_strongholds(seed, placement, &base_router.multi_noise)
+                    Self::calculate_strongholds_off_thread(seed, placement, &base_router.multi_noise)
                 },
-                |multi_noise| Self::calculate_strongholds(seed, placement, multi_noise),
+                |multi_noise| Self::calculate_strongholds_off_thread(seed, placement, multi_noise),
             ))
         }).as_deref().unwrap_or_default()
     }
