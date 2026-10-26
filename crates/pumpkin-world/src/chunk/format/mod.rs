@@ -1179,6 +1179,8 @@ impl ChunkData {
             blending_data: None,
             inhabited_time: AtomicU64::new(inhabited_time),
             custom_data: std::sync::Mutex::new(custom_data),
+            // The pump format has no vanilla root tags to carry over.
+            preserved_tags: std::sync::Mutex::new(NbtCompound::new()),
         })
     }
 
