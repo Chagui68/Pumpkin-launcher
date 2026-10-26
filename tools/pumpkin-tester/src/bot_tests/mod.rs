@@ -1,4 +1,5 @@
 mod block_tuning_and_invert;
+mod block_use_held_item;
 mod commands_and_gamemode;
 mod embedded_stop;
 mod login_and_movement;
@@ -44,6 +45,8 @@ pub async fn run_bot_tests(
     allay::run_allay_interaction_test(server, &mut bot1, summary_lines).await?;
 
     attack_targets::run_attack_target_tests(server, &mut bot1, summary_lines).await?;
+
+    block_use_held_item::run_block_use_held_item_tests(server, &mut bot1, summary_lines).await?;
 
     player_actions::run_player_actions_and_disconnect_tests(server, bot1, bot2, summary_lines)
         .await?;
