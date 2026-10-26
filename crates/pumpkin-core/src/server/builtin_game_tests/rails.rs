@@ -51,6 +51,53 @@ pub(super) async fn test_powered_rail_propagation(helper: GameTestHelper) -> Gam
     Ok(())
 }
 
+/// A source next to an already powered rail changes no rail state, so vanilla sends no
+/// update along the line and the rail past the 8 rail reach stays unpowered.
+pub(super) async fn test_powered_rail_mid_line_source_does_not_extend(
+    helper: GameTestHelper,
+) -> GameTestResult<()> {
+    build_stone_floor(&helper, 3, 14).await?;
+
+    let mut unpowered_props = PoweredRailLikeProperties::default(&Block::POWERED_RAIL);
+    unpowered_props.shape = RailShapeStraight::NorthSouth;
+    unpowered_props.powered = false;
+    let unpowered_rail = unpowered_props.to_state_id(&Block::POWERED_RAIL);
+
+    let mut powered_props = unpowered_props;
+    powered_props.powered = true;
+    let powered_rail = powered_props.to_state_id(&Block::POWERED_RAIL);
+
+    for z in 1..=12 {
+        helper
+            .set_block(&BlockPos::new(1, 1, z), unpowered_rail)
+            .await?;
+    }
+
+    helper
+        .set_block_default(&BlockPos::new(1, 1, 0), &Block::REDSTONE_BLOCK)
+        .await?;
+
+    for z in 1..=9 {
+        helper
+            .assert_block_state(&BlockPos::new(1, 1, z), powered_rail)
+            .await?;
+    }
+    helper
+        .assert_block_state(&BlockPos::new(1, 1, 10), unpowered_rail)
+        .await?;
+
+    helper
+        .set_block_default(&BlockPos::new(2, 1, 6), &Block::REDSTONE_BLOCK)
+        .await?;
+
+    helper
+        .assert_block_state(&BlockPos::new(1, 1, 10), unpowered_rail)
+        .await?;
+
+    helper.succeed();
+    Ok(())
+}
+
 pub(super) async fn test_activator_rail_propagation(helper: GameTestHelper) -> GameTestResult<()> {
     build_stone_floor(&helper, 3, 10).await?;
 

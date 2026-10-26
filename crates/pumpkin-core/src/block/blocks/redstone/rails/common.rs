@@ -9,7 +9,154 @@ use pumpkin_world::world::{BlockAccessor, BlockFlags};
 
 use crate::world::World;
 
+use super::super::block_receives_redstone_power;
 use super::{HorizontalFacingRailExt, Rail, RailElevation, RailProperties, StraightRailShapeExt};
+
+/// `PoweredRailBlock.updateState`, shared by powered and activator rails.
+pub(super) fn update_powered_rail_state(world: &Arc<World>, block: &Block, pos: &BlockPos) {
+    let mut rail_props = RailProperties::new(world.get_block_state_id(pos), block);
+    let should_power = block_receives_redstone_power(world, pos)
+        || find_powered_rail_signal(world, block, pos, &rail_props, true, 0)
+        || find_powered_rail_signal(world, block, pos, &rail_props, false, 0);
+
+    if should_power != rail_props.is_powered() {
+        rail_props.set_powered(should_power);
+        world.set_block_state(pos, rail_props.to_state_id(block), BlockFlags::NOTIFY_ALL);
+        world.update_neighbors_at(&pos.down(), block, None);
+        if rail_props.shape().is_ascending() {
+            world.update_neighbors_at(&pos.up(), block, None);
+        }
+    }
+}
+
+/// `PoweredRailBlock.findPoweredRailSignal`
+fn find_powered_rail_signal(
+    world: &World,
+    block: &Block,
+    pos: &BlockPos,
+    rail_props: &RailProperties,
+    forward: bool,
+    search_depth: u8,
+) -> bool {
+    if search_depth >= 8 {
+        return false;
+    }
+
+    let BlockPos(mut next) = *pos;
+    let mut check_below = true;
+    let shape = match rail_props.shape() {
+        RailShape::NorthSouth => {
+            next.z += if forward { 1 } else { -1 };
+            RailShape::NorthSouth
+        }
+        RailShape::EastWest => {
+            next.x += if forward { -1 } else { 1 };
+            RailShape::EastWest
+        }
+        RailShape::AscendingEast => {
+            if forward {
+                next.x -= 1;
+            } else {
+                next.x += 1;
+                next.y += 1;
+                check_below = false;
+            }
+            RailShape::EastWest
+        }
+        RailShape::AscendingWest => {
+            if forward {
+                next.x -= 1;
+                next.y += 1;
+                check_below = false;
+            } else {
+                next.x += 1;
+            }
+            RailShape::EastWest
+        }
+        RailShape::AscendingNorth => {
+            if forward {
+                next.z += 1;
+            } else {
+                next.z -= 1;
+                next.y += 1;
+                check_below = false;
+            }
+            RailShape::NorthSouth
+        }
+        RailShape::AscendingSouth => {
+            if forward {
+                next.z += 1;
+                next.y += 1;
+                check_below = false;
+            } else {
+                next.z -= 1;
+            }
+            RailShape::NorthSouth
+        }
+        // Straight rails never take a curved shape.
+        _ => return false,
+    };
+
+    let next = BlockPos(next);
+    is_same_rail_with_power(world, block, &next, forward, search_depth, shape)
+        || (check_below
+            && is_same_rail_with_power(world, block, &next.down(), forward, search_depth, shape))
+}
+
+/// `PoweredRailBlock.isSameRailWithPower`
+fn is_same_rail_with_power(
+    world: &World,
+    block: &Block,
+    pos: &BlockPos,
+    forward: bool,
+    search_depth: u8,
+    dir: RailShape,
+) -> bool {
+    let (found, state_id) = world.get_block_and_state_id(pos);
+    if found != block {
+        return false;
+    }
+
+    let rail_props = RailProperties::new(state_id, block);
+    let crosses = match dir {
+        RailShape::EastWest => matches!(
+            rail_props.shape(),
+            RailShape::NorthSouth | RailShape::AscendingNorth | RailShape::AscendingSouth
+        ),
+        RailShape::NorthSouth => matches!(
+            rail_props.shape(),
+            RailShape::EastWest | RailShape::AscendingEast | RailShape::AscendingWest
+        ),
+        _ => false,
+    };
+    if crosses || !rail_props.is_powered() {
+        return false;
+    }
+
+    block_receives_redstone_power(world, pos)
+        || find_powered_rail_signal(world, block, pos, &rail_props, forward, search_depth + 1)
+}
+
+/// `BaseRailBlock.affectNeighborsAfterRemoval` for the straight (powered and activator) rails.
+pub(super) fn affect_neighbors_after_powered_rail_removal(
+    world: &Arc<World>,
+    block: &Block,
+    old_state_id: BlockStateId,
+    pos: &BlockPos,
+    moved: bool,
+) {
+    if moved {
+        return;
+    }
+    if RailProperties::new(old_state_id, block)
+        .shape()
+        .is_ascending()
+    {
+        world.update_neighbors_at(&pos.up(), block, None);
+    }
+    world.update_neighbors_at(pos, block, None);
+    world.update_neighbors_at(&pos.down(), block, None);
+}
 
 pub(super) fn rail_placement_is_valid(world: &World, block: &Block, pos: &BlockPos) -> bool {
     if !can_place_rail_at(world, pos) {

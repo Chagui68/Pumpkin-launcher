@@ -70,6 +70,7 @@ const BUILTIN_TEST_IDS: &[&str] = &[
     "pumpkin:tnt_redstone_ignites",
     "pumpkin:furnace_ignites_and_smelts",
     "pumpkin:powered_rail_propagation",
+    "pumpkin:powered_rail_mid_line_source_does_not_extend",
     "pumpkin:activator_rail_propagation",
     "pumpkin:detector_rail_minecart",
     "pumpkin:tripwire_entity_collision",
@@ -458,6 +459,13 @@ pub fn ensure_builtin_game_tests_registered() {
             20,
             0,
             rails::test_powered_rail_propagation,
+        );
+        register_function_test(
+            "pumpkin:powered_rail_mid_line_source_does_not_extend",
+            "pumpkin:empty_3x4x14",
+            20,
+            0,
+            rails::test_powered_rail_mid_line_source_does_not_extend,
         );
         register_function_test(
             "pumpkin:activator_rail_propagation",
