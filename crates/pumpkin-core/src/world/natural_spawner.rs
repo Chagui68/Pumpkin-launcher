@@ -2,8 +2,8 @@ use crate::block::PathComputationType;
 use crate::entity::EntityBase;
 use crate::entity::mob::spawn::finalize_spawn;
 use crate::entity::r#type::{check_spawn_rules, from_type};
+use crate::plugin::SharedArcSwap;
 use crate::world::World;
-use arc_swap::ArcSwap;
 use crossbeam::atomic::AtomicCell;
 use dashmap::DashMap;
 use pumpkin_data::biome::Spawner;
@@ -360,7 +360,7 @@ impl SpawnState {
 
     pub fn new(
         chunk_count: i32,
-        entities: &ArcSwap<Vec<Arc<dyn EntityBase>>>,
+        entities: &SharedArcSwap<Vec<Arc<dyn EntityBase>>>,
         world: &World,
     ) -> Self {
         let potential = PotentialCalculator::default();

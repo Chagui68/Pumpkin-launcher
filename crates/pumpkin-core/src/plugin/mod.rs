@@ -1,4 +1,3 @@
-use arc_swap::ArcSwap;
 use futures::future::join_all;
 use loader::{LoaderError, PluginLoader, native::NativePluginLoader};
 use notify::{EventKind, RecursiveMode, Watcher, event::ModifyKind};
@@ -26,15 +25,17 @@ pub mod loader;
 /// Plugins can request these permissions in their metadata to access specific
 /// host features.
 pub mod permissions;
+pub mod shared_arc_swap;
 
 use crate::{LOGGER_IMPL, server::Server};
 pub use api::*;
+pub use shared_arc_swap::SharedArcSwap;
 
 pub type BoxFuture<'a, T> = Pin<Box<dyn Future<Output = T> + Send + 'a>>;
 
 /// Bump this whenever the public plugin API or any event layout changes in a way
 /// that makes old binary plugins incompatible.
-pub const PLUGIN_API_VERSION: u32 = 3;
+pub const PLUGIN_API_VERSION: u32 = 4;
 
 const PLUGIN_DIR: &str = "./plugins";
 
@@ -185,7 +186,7 @@ pub enum PluginState {
 pub struct PluginManager {
     plugins: SyncRwLock<Vec<LoadedPlugin>>,
     loaders: RwLock<Vec<Arc<dyn PluginLoader>>>,
-    pub handlers: Arc<ArcSwap<HandlerMap>>,
+    pub handlers: Arc<SharedArcSwap<HandlerMap>>,
     unloaded_files: RwLock<HashSet<PathBuf>>,
     services: Arc<RwLock<HashMap<String, Arc<dyn Payload>>>>,
     // Plugin state tracking
@@ -242,7 +243,7 @@ impl PluginManager {
         Self {
             plugins: SyncRwLock::new(Vec::new()),
             loaders: RwLock::new(loaders),
-            handlers: Arc::new(ArcSwap::from_pointee(HashMap::new())),
+            handlers: Arc::new(SharedArcSwap::from_pointee(HashMap::new())),
             unloaded_files: RwLock::new(HashSet::new()),
             services: Arc::new(RwLock::new(HashMap::new())),
             plugin_states: RwLock::new(HashMap::new()),

@@ -7,10 +7,10 @@ use crate::entity::NBTStorage;
 use crate::item::registry::ItemRegistry;
 use crate::net::authentication::fetch_mojang_public_keys;
 use crate::net::{ClientPlatform, DisconnectReason, EncryptionError, GameProfile, PlayerConfig};
-use crate::plugin::PluginManager;
 use crate::plugin::loader::PluginLoader;
 use crate::plugin::player::player_login::PlayerLoginEvent;
 use crate::plugin::server::server_broadcast::ServerBroadcastEvent;
+use crate::plugin::{PluginManager, SharedArcSwap};
 use crate::server::tick_rate_manager::ServerTickRateManager;
 use crate::world::WorldPortal;
 use crate::world::custom_bossbar::CustomBossbars;
@@ -93,13 +93,13 @@ pub struct Server {
     /// Saves server branding information.
     branding: CachedBranding,
     /// Saves and dispatches commands to appropriate handlers.
-    pub command_dispatcher: ArcSwap<CommandDispatcher>,
+    pub command_dispatcher: SharedArcSwap<CommandDispatcher>,
     /// Block behaviour.
     pub block_registry: Arc<BlockRegistry>,
     /// Item behaviour.
     pub item_registry: Arc<ItemRegistry>,
     /// Manages multiple worlds within the server.
-    pub worlds: ArcSwap<Vec<Arc<World>>>,
+    pub worlds: SharedArcSwap<Vec<Arc<World>>>,
     /// All the dimensions that exist on the server.
     pub dimensions: Vec<Dimension>,
     /// Assigns unique IDs to containers.
@@ -174,7 +174,7 @@ impl Server {
     ) -> Result<Arc<Self>, WorldInfoError> {
         let permission_manager = Arc::new(PermissionManager::new());
         // First register the default commands. After that, plugins can put in their own.
-        let command_dispatcher = ArcSwap::from_pointee(default_dispatcher(
+        let command_dispatcher = SharedArcSwap::from_pointee(default_dispatcher(
             &permission_manager,
             &advanced_config.commands,
         ));
@@ -297,7 +297,7 @@ impl Server {
             datapack_manager: Arc::new(crate::data::datapack::DatapackManager::new()),
             enchantment_manager: Arc::new(enchantment::EnchantmentManager::new()),
             map_id: level_info.load().map_id.into(),
-            worlds: ArcSwap::from_pointee(vec![]),
+            worlds: SharedArcSwap::from_pointee(vec![]),
             dimensions,
             command_dispatcher,
             block_registry: block_registry.clone(),

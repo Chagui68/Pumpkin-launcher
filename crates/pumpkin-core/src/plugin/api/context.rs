@@ -8,7 +8,6 @@ use crate::{
     LoggerOption, command::client_suggestions, net::ClientPlatform, plugin::PluginMetadata,
     plugin_log,
 };
-use arc_swap::ArcSwap;
 use pumpkin_util::{
     PermissionLvl,
     permission::{Permission, PermissionManager},
@@ -17,7 +16,7 @@ use tracing::Level;
 
 use crate::{
     entity::player::Player,
-    plugin::{EventHandler, HandlerMap, PluginManager, TypedEventHandler},
+    plugin::{EventHandler, HandlerMap, PluginManager, SharedArcSwap, TypedEventHandler},
     server::Server,
 };
 
@@ -31,12 +30,12 @@ use super::{EventPriority, Payload};
 /// # Fields
 /// - `metadata`: Metadata of the plugin.
 /// - `server`: A reference to the server on which the plugin operates.
-/// - `handlers`: A map of event handlers, wrapped in `ArcSwap` for lock-free read access across threads.
+/// - `handlers`: The plugin manager's map of event handlers, shared with the server.
 #[repr(C)]
 pub struct Context {
     metadata: PluginMetadata,
     pub server: Arc<Server>,
-    pub handlers: Arc<ArcSwap<HandlerMap>>,
+    pub handlers: Arc<SharedArcSwap<HandlerMap>>,
     pub plugin_manager: Arc<PluginManager>,
     pub permission_manager: Arc<PermissionManager>,
     pub logger: Arc<OnceLock<LoggerOption>>,
@@ -55,7 +54,7 @@ impl Context {
     pub fn new(
         metadata: PluginMetadata,
         server: Arc<Server>,
-        handlers: Arc<ArcSwap<HandlerMap>>,
+        handlers: Arc<SharedArcSwap<HandlerMap>>,
         plugin_manager: Arc<PluginManager>,
         logger: Arc<OnceLock<LoggerOption>>,
     ) -> Self {

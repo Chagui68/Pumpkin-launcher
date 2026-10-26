@@ -40,6 +40,7 @@ pub mod time;
 pub mod villager_poi;
 
 use crate::block::RandomTickArgs;
+use crate::plugin::SharedArcSwap;
 use crate::world::chunker::is_within_chebyshev_distance;
 use crate::{block::BlockEvent, entity::item::ItemEntity};
 use crate::{
@@ -227,10 +228,10 @@ pub struct World {
     pub level: Arc<Level>,
     pub level_info: Arc<ArcSwap<LevelData>>,
     /// A map of active players within the world, keyed by their unique UUID.
-    pub players: ArcSwap<Vec<Arc<Player>>>,
+    pub players: SharedArcSwap<Vec<Arc<Player>>>,
     /// A map of active entities within the world, keyed by their unique UUID.
     /// This does not include players.
-    pub entities: ArcSwap<Vec<Arc<dyn EntityBase>>>,
+    pub entities: SharedArcSwap<Vec<Arc<dyn EntityBase>>>,
     pub(crate) entity_index: Arc<EntityIndex>,
     island_schedule: std::sync::Mutex<entity_islands::Schedule>,
     /// The world's scoreboard, used for tracking scores, objectives, and display information.
@@ -387,8 +388,8 @@ impl World {
             uuid: Uuid::new_v4(),
             level,
             level_info,
-            players: ArcSwap::new(Arc::new(Vec::new())),
-            entities: ArcSwap::new(Arc::new(Vec::new())),
+            players: SharedArcSwap::new(Arc::new(Vec::new())),
+            entities: SharedArcSwap::new(Arc::new(Vec::new())),
             entity_index: Arc::default(),
             island_schedule: std::sync::Mutex::default(),
             scoreboard: std::sync::Mutex::new(Scoreboard::default()),
