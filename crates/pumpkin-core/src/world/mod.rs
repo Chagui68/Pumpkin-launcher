@@ -4540,6 +4540,21 @@ impl World {
         None
     }
 
+    /// Vanilla `ServerLevel.getEntityOrPart`: the entity with this id, or an ender dragon part.
+    pub fn get_entity_or_part(&self, id: i32) -> Option<Arc<dyn EntityBase>> {
+        self.get_entity_by_id(id).or_else(|| {
+            self.entities.load().iter().find_map(|entity| {
+                entity
+                    .cast_any()
+                    .downcast_ref::<crate::entity::boss::ender_dragon::EnderDragonEntity>()?
+                    .parts
+                    .iter()
+                    .find(|part| part.entity.entity_id == id)
+                    .map(|part| part.clone() as Arc<dyn EntityBase>)
+            })
+        })
+    }
+
     /// Gets a `Player` by a username
     pub fn get_player_by_name(&self, name: &str) -> Option<Arc<Player>> {
         for player in self.players.load().iter() {

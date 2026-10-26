@@ -141,16 +141,23 @@ pub fn find_path(
     path
 }
 
+/// Vanilla's part names, in the order of `EnderDragon.subEntities` (and of their entity ids).
+const PART_NAMES: [&str; 8] = [
+    "head", "neck", "body", "tail", "tail", "tail", "wing", "wing",
+];
+
 pub struct EnderDragonPart {
     pub entity: Entity,
     pub dragon_uuid: uuid::Uuid,
+    pub name: &'static str,
 }
 
 impl EnderDragonPart {
-    pub const fn new(entity: Entity, dragon_uuid: uuid::Uuid) -> Self {
+    pub const fn new(entity: Entity, dragon_uuid: uuid::Uuid, name: &'static str) -> Self {
         Self {
             entity,
             dragon_uuid,
+            name,
         }
     }
 }
@@ -160,17 +167,39 @@ impl EntityBase for EnderDragonPart {
         &self.entity
     }
 
-    fn damage(&self, source: &dyn EntityBase, amount: f32, damage_type: DamageType) -> bool {
+    fn damage_with_context(
+        &self,
+        _caller: &dyn EntityBase,
+        amount: f32,
+        damage_type: DamageType,
+        position: Option<Vector3<f64>>,
+        source: Option<&dyn EntityBase>,
+        cause: Option<&dyn EntityBase>,
+    ) -> bool {
         let world = self.entity.world.load();
-        if let Some(dragon_base) = world
+        let Some(dragon) = world
             .entities
             .load()
             .iter()
             .find(|e| e.get_entity().entity_uuid == self.dragon_uuid)
-        {
-            return dragon_base.damage(source, amount, damage_type);
-        }
-        false
+            .cloned()
+        else {
+            return false;
+        };
+        // Vanilla `EnderDragon.hurt(part, ...)`: only the head and neck take full damage.
+        let amount = if matches!(self.name, "head" | "neck") {
+            amount
+        } else {
+            amount / 4.0 + amount.min(1.0)
+        };
+        dragon.damage_with_context(
+            dragon.as_ref(),
+            amount,
+            damage_type,
+            position,
+            source,
+            cause,
+        )
     }
 
     fn cast_any(&self) -> &dyn std::any::Any {
@@ -230,7 +259,7 @@ impl EnderDragonEntity {
         let _ = Entity::reserve_ids(8);
 
         let mut parts = Vec::new();
-        for i in 1..=8 {
+        for (i, name) in (1..).zip(PART_NAMES) {
             let part_entity = Entity::from_uuid_with_id(
                 base_id + i,
                 uuid::Uuid::new_v4(),
@@ -238,7 +267,7 @@ impl EnderDragonEntity {
                 entity.pos.load(),
                 &EntityType::ENDER_DRAGON,
             );
-            let part = Arc::new(EnderDragonPart::new(part_entity, dragon_uuid));
+            let part = Arc::new(EnderDragonPart::new(part_entity, dragon_uuid, name));
             // TODO: world.add_entity_silent(part.clone() as Arc<dyn EntityBase>);
             parts.push(part);
         }
