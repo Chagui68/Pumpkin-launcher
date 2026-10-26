@@ -1113,7 +1113,7 @@ mod tests {
             .unwrap()
             .to_stack();
         assert_eq!(stack.patch.len(), 1);
-        assert!(stack.patch[0].0 == DataComponent::MaxStackSize);
+        assert_eq!(stack.patch[0].0, DataComponent::MaxStackSize);
 
         for wire_id in [-1, 256, 257, 100_000] {
             assert_component_id_is_rejected(wire_id);

@@ -2,6 +2,7 @@
 use super::*;
 
 impl JavaClient {
+    #[allow(clippy::too_many_lines)]
     pub fn handle_move_vehicle(&self, player: &Arc<Player>, packet: &SMoveVehicle) {
         // A movement packet was received this tick — tracked for SClientTickEnd zeroing.
         self.received_movement_this_tick
