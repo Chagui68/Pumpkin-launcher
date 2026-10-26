@@ -99,6 +99,42 @@ and customizable experience. It prioritizes performance and player enjoyment whi
 
 See our [Quick Start](https://docs.pumpkinmc.org/#quick-start) guide to get Pumpkin running.
 
+## Changes in this fork
+
+> [!NOTE]
+> Pumpkin-launcher is a personal fork of [Pumpkin-MC/Pumpkin](https://github.com/Pumpkin-MC/Pumpkin). Nothing below is merged upstream. The PatchBukkit patches and test scripts live in [`fork/`](fork/).
+
+### Server
+
+- **Native plugins no longer crash the server.** Native plugins link their own copy of `pumpkin-core`, including `arc_swap`, whose reader tracking is a global static. When plugin code swapped an `ArcSwap` while the server was reading it, the old value was freed under the reader (`0xC0000005`). The event handler map, `Server::command_dispatcher`, `Server::worlds`, `World::players` and `World::entities` now use `plugin::SharedArcSwap`, a `RwLock<Arc<T>>` with the same `load`/`rcu`/`store` API. `PLUGIN_API_VERSION` is now 4, so native plugins must be rebuilt.
+- **`stop` no longer hangs when stdin is not a terminal** (Docker, panels, piped input). The stdin console task now also waits on the server's stop token. This was a regression from #3771.
+- **Powered and activator rails update their power like vanilla** (`PoweredRailBlock.updateState`). A redstone source next to an already powered rail no longer extends power past the 8 rail reach. Covered by the `pumpkin:powered_rail_mid_line_source_does_not_extend` game test.
+
+### Running Bukkit, Spigot and Paper plugins
+
+Plugins written for Bukkit, Spigot, Paper or Purpur run through [PatchBukkit](https://github.com/Pumpkin-MC/PatchBukkit), which embeds a JVM with a headless Paper 26.3.
+
+- Build PatchBukkit against this checkout. Point its `rust/Cargo.toml` at the local crates with a `[patch."https://github.com/Pumpkin-MC/Pumpkin.git"]` section and start from this repo's `Cargo.lock`, otherwise the plugin and the server disagree on type layouts.
+- Java 25 is required (`JAVA_HOME`).
+- Add `extra-args = ["-Dterminal.jline=false"]` to `patchbukkit.config.toml` when stdin is not a terminal. Without it, Paper's console hangs the JVM on startup.
+- Bukkit plugins go in `plugins/data/patchbukkit/patchbukkit-plugins/`.
+
+Local PatchBukkit fixes (not upstream yet):
+
+- Plugin classes are rewritten by Paper's legacy support (Commodore), as on Paper, so plugins built for older API versions get renamed fields and legacy materials translated.
+- Classes resolve from the server first, then the plugin's jar, then other plugins, like Paper. A library shaded unrelocated in one plugin no longer shadows the server's copy for every plugin.
+- Plugin classes carry a `CodeSource` pointing at their jar, so plugins can locate and read their own jar.
+- Syncing the world clock from Pumpkin no longer fires a fake `TimeSkipEvent`.
+- `TimeSkipEvent.SkipReason`, moved in Paper 26.x, is remapped for older plugins.
+- Only top-level jars in the plugins folder are loaded, so BentoBox addons and downloaded libraries are not loaded as plugins.
+
+### Test status
+
+- 197 game tests (`cargo run -p pumpkin-tester`) and 584 `pumpkin-core` unit tests pass.
+- PatchBukkit conformance plugin: 543 of 547 Bukkit API checks pass.
+- 59 Bukkit plugins and the BSkyBlock addon loaded together (the SlimefunNewHorizons organization releases, BentoBox, LuckPerms, Vault, EssentialsX): 48 enable (46 cleanly, EssentialsX and Odysseia with warnings) and the server starts and stops without crashing. The other 11 fail for their own reasons, such as addons built against classes that Slimefun4-Drake's compatibility layer does not provide, invalid `plugin.yml` files or missing libraries.
+- Not tested with a real client: gameplay of these plugins, and tick time with many entities after the `SharedArcSwap` change.
+
 ## Contributions
 
 Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md)
