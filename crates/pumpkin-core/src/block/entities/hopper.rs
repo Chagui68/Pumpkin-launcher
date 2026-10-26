@@ -1,3 +1,4 @@
+use crate::block::blocks::chests::get_container;
 use crate::block::entities::BlockEntity;
 use crate::entity::experience_orb::ExperienceOrbEntity;
 use crate::entity::item::ItemEntity;
@@ -242,7 +243,8 @@ impl HopperBlockEntity {
         }
 
         if let Some(entity) = world.get_block_entity(pos_up)
-            && let Some(container) = entity.clone().get_inventory()
+            && let Some(container) = get_container(world, pos_up, &entity, true)
+                .or_else(|| entity.clone().get_inventory())
         {
             // TODO check WorldlyContainer
             for i in 0..container.size() {
@@ -378,9 +380,11 @@ impl HopperBlockEntity {
 
     fn eject_items(&self, world: &Arc<World>) -> bool {
         // TODO getEntityContainer
+        let facing = &self.position.offset(to_offset(&self.facing));
 
-        if let Some(entity) = world.get_block_entity(&self.position.offset(to_offset(&self.facing)))
-            && let Some(container) = entity.get_inventory()
+        if let Some(entity) = world.get_block_entity(facing)
+            && let Some(container) = get_container(world, facing, &entity, true)
+                .or_else(|| entity.clone().get_inventory())
         {
             // TODO check WorldlyContainer
             let mut is_full = true;
