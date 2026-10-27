@@ -80,6 +80,7 @@ and customizable experience. It prioritizes performance and player enjoyment whi
   - [X] Entity Saving
 - Server
   - [Plugins](https://github.com/Pumpkin-MC/Pumpkin/issues/1407)
+  - [x] Bukkit, Spigot, Paper and Purpur plugins through PatchBukkit (this fork, W.I.P)
   - [x] Query
   - [x] [Minecraft Server Management Protocol (MSMP)](https://minecraft.wiki/w/Minecraft_Server_Management_Protocol)
   - [x] Inventories
@@ -102,7 +103,7 @@ See our [Quick Start](https://docs.pumpkinmc.org/#quick-start) guide to get Pump
 ## Changes in this fork
 
 > [!NOTE]
-> Pumpkin-launcher is a personal fork of [Pumpkin-MC/Pumpkin](https://github.com/Pumpkin-MC/Pumpkin). Nothing below is merged upstream. The PatchBukkit patches and test scripts live in [`fork/`](fork/).
+> Pumpkin-launcher is a personal fork of [Pumpkin-MC/Pumpkin](https://github.com/Pumpkin-MC/Pumpkin). Nothing below is merged upstream yet. The PatchBukkit patches and test scripts live in [`fork/`](fork/).
 
 ### Server
 
@@ -136,9 +137,46 @@ Local PatchBukkit fixes (not upstream yet):
 - `TimeSkipEvent.SkipReason`, moved in Paper 26.x, is remapped for older plugins.
 - Only top-level jars in the plugins folder are loaded, so BentoBox addons and downloaded libraries are not loaded as plugins.
 
+### Upstream pull requests
+
+100 open pull requests from Pumpkin-MC/Pumpkin are applied here, each as one commit with its original author and the pull request number in the subject (`git log --grep '(#'`). They were picked because they fix bugs, apply on this branch and pass the checks below. When a pull request needed a small lint fix to build here, the fix is folded into its commit.
+
+### Fork progress
+
+Done:
+
+- [x] Server builds, starts and stops on Windows, also with piped stdin
+- [x] Bukkit, Spigot, Paper and Purpur plugins through PatchBukkit, including legacy plugins (Commodore rewrites, `CodeSource`, server-first class loading)
+- [x] Native plugins no longer crash the server (`SharedArcSwap`)
+- [x] 60-plugin load test: SlimefunNewHorizons releases, BentoBox with BSkyBlock, LuckPerms, Vault, EssentialsX
+- [x] Powered and activator rails like vanilla
+- [x] Block entities saved before their chunks unload
+- [x] Cursor stack and crafting grid dropped on disconnect
+- [x] Wasm plugin packet fields and received packets no longer panic
+- [x] Per-player scoreboards no longer kick joining players
+- [x] Ender dragon parts can be hit, and attacks on removed entities no longer kick
+- [x] Nether and End chunk generation no longer deadlocks on stronghold rings
+- [x] Campfire and jukebox item duplication
+- [x] Splash potion harm attributed to the thrower
+- [x] Wasm plugin reentry deadlock (#4162)
+- [x] 100 upstream bug fix pull requests integrated
+- [x] Typos CI no longer checks the PatchBukkit patch files
+
+Still to do:
+
+- [ ] Integrate the remaining upstream fix pull requests: 37 need a 3-way merge and about 30 conflict with this branch (#4311 among them)
+- [ ] Large upstream changes left out on purpose: the mob behavior rewrite (#4107) and the tick scheduler change (#3863)
+- [ ] Bugs not reproduced here: duplicate entity UUIDs (#3272), chat changing the tab list name (#3379), level particles decode error (#3777)
+- [ ] Bugs that need a Bedrock client or a TypeScript Wasm plugin: #2981, #2104, #3396, #3702
+- [ ] Area effect clouds do not remember their owner, so their harm is not attributed yet; vanilla's integer rounding of potion damage is not ported
+- [ ] Outside the overworld, vanilla skips stronghold placement entirely; Pumpkin still computes the rings
+- [ ] Measure tick time with many entities after the `SharedArcSwap` change
+- [ ] Play test the fixes with a real client
+- [ ] The 11 Bukkit plugins that fail for their own reasons (missing classes in Slimefun4-Drake's compatibility layer, invalid `plugin.yml`, missing libraries)
+
 ### Test status
 
-- 200 game tests and 16 bot checks (`cargo run -p pumpkin-tester`) and 614 `pumpkin-core` unit tests pass.
+- 200 game tests and 16 bot checks (`cargo run -p pumpkin-tester`) pass, plus 617 `pumpkin-core`, 306 `pumpkin-world`, 157 `pumpkin-protocol` and 84 `pumpkin-util` unit tests. The `goal_selector` reported-goal test is timing sensitive and can fail under full parallel load.
 - PatchBukkit conformance plugin: 543 of 547 Bukkit API checks pass.
 - 59 Bukkit plugins and the BSkyBlock addon loaded together (the SlimefunNewHorizons organization releases, BentoBox, LuckPerms, Vault, EssentialsX): 48 enable (46 cleanly, EssentialsX and Odysseia with warnings) and the server starts and stops without crashing. The other 11 fail for their own reasons, such as addons built against classes that Slimefun4-Drake's compatibility layer does not provide, invalid `plugin.yml` files or missing libraries.
 - Not tested with a real client: gameplay of these plugins, and tick time with many entities after the `SharedArcSwap` change.
